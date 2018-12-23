@@ -227,3 +227,15 @@ float USave::Price(EEquipementLevel level) {
 			throw std::runtime_error("Unsupported enum value.");
 	}
 }
+
+int switch_EEquipementLevel(EEquipementLevel level) {
+	switch (level) {
+		case EEquipementLevel::L0: return 0;
+		case EEquipementLevel::L1: return 1;
+		case EEquipementLevel::L2: return 2;
+		case EEquipementLevel::L3: return 3;
+		case EEquipementLevel::L4: return 4;
+		case EEquipementLevel::L5: return 5;
+		default: return -1;
+	}
+}

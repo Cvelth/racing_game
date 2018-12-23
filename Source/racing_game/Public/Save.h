@@ -13,6 +13,7 @@ enum class EEquipementLevel : uint8 {
 	L4 UMETA(DisplayName = "Level 4"),
 	L5 UMETA(DisplayName = "Level 5")
 };
+int switch_EEquipementLevel(EEquipementLevel level);
 
 UCLASS()
 class RACING_GAME_API USave : public USaveGame {
