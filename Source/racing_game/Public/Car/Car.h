@@ -52,6 +52,7 @@ public:
 	void HandbrakeOff();
 	void StartFire();
 	void StopFire();
+	void cheat();
 
 	void ApplyDamage(float value);
 	void Die();

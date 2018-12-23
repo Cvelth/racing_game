@@ -137,6 +137,8 @@ void ACar::SetupPlayerInputComponent(class UInputComponent* InputComponent) {
 	//InputComponent->BindAction("UINavigationLeft", IE_Pressed, this, &AMainCharacter::UINavigationLeft).bExecuteWhenPaused = true;
 	//InputComponent->BindAction("UINavigationRight", IE_Pressed, this, &AMainCharacter::UINavigationRight).bExecuteWhenPaused = true;
 	//InputComponent->BindAction("UISelectElement", IE_Pressed, this, &AMainCharacter::UISelectElement).bExecuteWhenPaused = true;
+
+	InputComponent->BindAction("Cheat", IE_Pressed, this, &ACar::cheat);
 }
 void ACar::MoveForward(float value) {
 	if (is_alive)
@@ -212,4 +214,13 @@ void ACar::OnHit(AActor *SelfActor, AActor *OtherActor,
 	if (!is_invincible && NormalImpulse.Size() > 140000.f)
 		ApplyDamage(NormalImpulse.Size() / armor / 80000.f);
 	virtual_on_hit(SelfActor, OtherActor, NormalImpulse, Hit);
+}
+
+void ACar::cheat() {
+	USave* Savefile = Cast<USave>(UGameplayStatics::CreateSaveGameObject(USave::StaticClass()));
+	Savefile = Cast<USave>(UGameplayStatics::LoadGameFromSlot(Savefile->SaveSlotName, Savefile->UserIndex));
+	if (!Savefile)
+		Savefile = Cast<USave>(UGameplayStatics::CreateSaveGameObject(USave::StaticClass()));
+	Savefile->Money += 9999;
+	UGameplayStatics::SaveGameToSlot(Savefile, Savefile->SaveSlotName, Savefile->UserIndex);
 }
