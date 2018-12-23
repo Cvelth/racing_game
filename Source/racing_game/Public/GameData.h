@@ -20,7 +20,4 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
 	float time_limit;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
-	FString player_name;
 };

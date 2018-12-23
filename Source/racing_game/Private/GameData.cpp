@@ -8,9 +8,12 @@ UGameData::UGameData() {
 #include "Save.h"
 #include "Kismet/GameplayStatics.h"
 void UGameData::Init() {
+	/*
 	USave* Savefile = Cast<USave>(UGameplayStatics::CreateSaveGameObject(USave::StaticClass()));
 	Savefile = Cast<USave>(UGameplayStatics::LoadGameFromSlot(Savefile->SaveSlotName, Savefile->UserIndex));
 	if (!Savefile)
 		Savefile = Cast<USave>(UGameplayStatics::CreateSaveGameObject(USave::StaticClass()));
 	player_name = Savefile->PlayerName;
+	money = Savefile->Money;
+	*/
 }
