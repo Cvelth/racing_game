@@ -1,0 +1,215 @@
+#include "Car.h"
+#include "DestroyedCar.h"
+#include "Weapon.h"
+#include "WheeledVehicleMovementComponent.h" //PhysXVehicles
+#include "WheeledVehicleMovementComponent4W.h" //PhysXVehicles
+#include "TireConfig.h" //PhysXVehicles
+#include "Components/InputComponent.h"
+#include "Engine.h"
+#include "Blueprint/UserWidget.h"
+#include "Save.h"
+#include "FrontWheel.h"
+#include "BackWheel.h"
+
+ACar::ACar() : AWheeledVehicle() {
+	PrimaryActorTick.bCanEverTick = true;
+
+	OnActorHit.AddDynamic(this, &ACar::OnHit);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	RootComponent = GetMesh();
+
+	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	SpringArm->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	SpringArm->SetRelativeLocation(FVector(0,0,250));
+	SpringArm->AddLocalRotation(FRotator(-10, 0, 0));
+	SpringArm->TargetArmLength = 500.0f;
+
+	MainCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("MainCamera"));
+	MainCamera->AttachToComponent(SpringArm, FAttachmentTransformRules::KeepRelativeTransform, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
+	MainCamera->bUsePawnControlRotation = false;
+	MainCamera->AddLocalRotation(FRotator(-10, 0, 0));
+
+	Weapon = CreateDefaultSubobject<UChildActorComponent>(TEXT("Weapon"));
+	Weapon->SetChildActorClass(AWeapon::StaticClass());
+	Weapon->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+
+	DestroyedCarEffect = CreateDefaultSubobject<UChildActorComponent>(TEXT("DestroyedCarEffect"));
+	DestroyedCarEffect->SetChildActorClass(ADestroyedCar::StaticClass());
+	DestroyedCarEffect->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	DestroyedCarEffect->Deactivate();
+	
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> skMesh(TEXT("SkeletalMesh'/Game/Vehicles/Doom/Mesh/SK_Buggy_Vehicle.SK_Buggy_Vehicle'"));
+	GetMesh()->SetSkeletalMesh(skMesh.Object);
+
+	static ConstructorHelpers::FClassFinder<UObject> doomAnimationClass(TEXT("/Game/Vehicles/Doom/Blueprints/BP_VehicleAnimation"));
+	GetMesh()->SetAnimInstanceClass(doomAnimationClass.Class);
+
+	HealthBar = CreateDefaultSubobject<UWidgetComponent>("HealthBarComponent");
+	static ConstructorHelpers::FClassFinder<UObject> healthBarFinder(TEXT("WidgetBlueprint'/Game/Widgets/HealthBar.HealthBar_C'"));
+	HealthBarClass = healthBarFinder.Class;
+
+	USave* Savefile = Cast<USave>(UGameplayStatics::CreateSaveGameObject(USave::StaticClass()));
+	Savefile = Cast<USave>(UGameplayStatics::LoadGameFromSlot(Savefile->SaveSlotName, Savefile->UserIndex));
+	if (!Savefile)
+		Savefile = Cast<USave>(UGameplayStatics::CreateSaveGameObject(USave::StaticClass()));
+	UWheel::CurrentMaximumSteerAngle = Savefile->GetMaximumSteerAngle();
+	UWheel::CurrentFrictionScale = Savefile->GetFrictionScale();
+	UWheel::CurrentLatStiffness = Savefile->GetLatStiffness();
+
+	GetVehicleMovement()->WheelSetups.SetNum(4); //set number of wheels
+	GetVehicleMovement()->WheelSetups[0].WheelClass = UFrontWheel::StaticClass();
+	GetVehicleMovement()->WheelSetups[0].BoneName = FName("F_L_wheelJNT");
+	GetVehicleMovement()->WheelSetups[1].WheelClass = UFrontWheel::StaticClass();
+	GetVehicleMovement()->WheelSetups[1].BoneName = FName("F_R_wheelJNT");
+	GetVehicleMovement()->WheelSetups[2].WheelClass = UBackWheel::StaticClass();
+	GetVehicleMovement()->WheelSetups[2].BoneName = FName("B_L_wheelJNT");
+	GetVehicleMovement()->WheelSetups[3].WheelClass = UBackWheel::StaticClass();
+	GetVehicleMovement()->WheelSetups[3].BoneName = FName("B_R_wheelJNT");
+	auto MovementComponent = const_cast<UWheeledVehicleMovementComponent*>(GetVehicleMovement());
+
+	//MovementComponent->MaxEngineRPM = Savefile->GetEngineRPM();
+	Cast<UWheeledVehicleMovementComponent4W>(MovementComponent)->EngineSetup.MaxRPM = Savefile->GetEngineRPM();
+	Cast<UWheeledVehicleMovementComponent4W>(MovementComponent)->TransmissionSetup.GearSwitchTime = Savefile->GetGearSwitchTime();
+	MovementComponent->Mass = Savefile->GetMass();
+	MovementComponent->DragCoefficient = Savefile->GetDragCoefficient();
+	//MovementComponent->bUseRVOAvoidance = true;
+
+	max_health = Savefile->GetMaxHealth();
+	armor = Savefile->GetMaxHealth();
+	weapon_damage = Savefile->GetDamage();
+}
+void ACar::BeginPlay() {
+	Super::BeginPlay();
+
+	GetMesh()->BodyInstance.bLockTranslation = true;
+	GetMesh()->BodyInstance.bLockRotation = true;
+	GetMesh()->BodyInstance.bLockXTranslation = true;
+	GetMesh()->BodyInstance.bLockYTranslation = true;
+	GetMesh()->BodyInstance.bLockZTranslation = false;
+	GetMesh()->BodyInstance.bLockXRotation = true;
+	GetMesh()->BodyInstance.bLockYRotation = true;
+	GetMesh()->BodyInstance.bLockZRotation = true;
+	GetMesh()->BodyInstance.SetDOFLock(EDOFMode::XYPlane);
+	GetMesh()->BodyInstance.StabilizationThresholdMultiplier = 4;
+	auto center = GetMesh()->GetCenterOfMass();
+	GetMesh()->SetCenterOfMass(FVector(0, 0, -center.Z));
+
+	health = max_health;
+	is_alive = true;
+	is_invincible = false;
+
+	AWeapon* weapon = Cast<AWeapon>(Weapon->GetChildActor());
+	weapon->SetOwner(this);
+	weapon->damage = weapon_damage;
+
+	HealthBar->SetWidgetClass(HealthBarClass);
+	HealthBar->SetDrawSize(FVector2D(400.0f, 50.0f));
+	HealthBar->SetVisibility(true);
+	HealthBar->RegisterComponent();
+	HealthBar->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	HealthBar->SetWidgetSpace(EWidgetSpace::Screen);
+	HealthBar->SetRelativeTransform(FTransform(FVector(0, 0, 250)));
+
+	const FString command = FString::Printf(TEXT("set_value %f"), health / max_health);
+	static FOutputDeviceDebug temp;
+	HealthBar->GetUserWidgetObject()->CallFunctionByNameWithArguments(*command, temp, this, true);
+}
+void ACar::Tick(float DeltaTime) {
+	Super::Tick(DeltaTime);
+}
+
+void ACar::SetupPlayerInputComponent(class UInputComponent* InputComponent) {
+	Super::SetupPlayerInputComponent(InputComponent);
+	/*Movement Axes*/
+	InputComponent->BindAxis("MoveForward", this, &ACar::MoveForward);
+	InputComponent->BindAxis("MoveRight", this, &ACar::MoveRight);
+
+	/*Action Key Mapping*/
+	InputComponent->BindAction("Handbrake", IE_Pressed, this, &ACar::HandbrakeOn);
+	InputComponent->BindAction("Handbrake", IE_Released, this, &ACar::HandbrakeOff);
+
+	InputComponent->BindAction("Weapon", IE_Pressed, this, &ACar::StartFire);
+	InputComponent->BindAction("Weapon", IE_Released, this, &ACar::StopFire);
+
+	/* UI Mappings */
+	//InputComponent->BindAction("UINavigationUp", IE_Pressed, this, &AMainCharacter::UINavigationUp).bExecuteWhenPaused = true;
+	//InputComponent->BindAction("UINavigationDown", IE_Pressed, this, &AMainCharacter::UINavigationDown).bExecuteWhenPaused = true;
+	//InputComponent->BindAction("UINavigationLeft", IE_Pressed, this, &AMainCharacter::UINavigationLeft).bExecuteWhenPaused = true;
+	//InputComponent->BindAction("UINavigationRight", IE_Pressed, this, &AMainCharacter::UINavigationRight).bExecuteWhenPaused = true;
+	//InputComponent->BindAction("UISelectElement", IE_Pressed, this, &AMainCharacter::UISelectElement).bExecuteWhenPaused = true;
+}
+void ACar::MoveForward(float value) {
+	if (is_alive)
+		GetVehicleMovement()->SetThrottleInput(value);
+}
+void ACar::MoveRight(float value) {
+	if (is_alive)
+		GetVehicleMovement()->SetSteeringInput(value);
+}
+void ACar::HandbrakeOn() {
+	if (is_alive)
+		GetVehicleMovement()->SetHandbrakeInput(true);
+}
+void ACar::HandbrakeOff() {
+	if (is_alive)
+		GetVehicleMovement()->SetHandbrakeInput(false);
+}
+void ACar::StartFire() {
+	AWeapon* weapon = Cast<AWeapon>(Weapon->GetChildActor());
+	if (weapon)	weapon->Activate();
+}
+void ACar::StopFire() {
+	AWeapon* weapon = Cast<AWeapon>(Weapon->GetChildActor());
+	if (weapon) weapon->Deactivate();
+}
+void ACar::ApplyDamage(float value) {
+	if (is_alive) {
+		health -= value / armor;
+
+		const FString command = FString::Printf(TEXT("set_value %f"), health / max_health);
+		static FOutputDeviceDebug temp;
+		HealthBar->GetUserWidgetObject()->CallFunctionByNameWithArguments(*command, temp, this, true);
+
+		if (health <= 0)
+			Die();
+		else
+			if (value / armor > max_health / 10) {
+				is_invincible = true;
+				GetWorld()->GetTimerManager().SetTimer(invincibility_timer, this, &ACar::OnInvincibilityEnd, 0.2f, false);
+			}
+	}
+}
+void ACar::Die() {
+	if (is_alive) {
+		GEngine->AddOnScreenDebugMessage(-1, 2.0, FColor::Yellow, FString::Printf(TEXT("%s has been killed."), *name.ToString()));
+
+		DestroyedCarEffect->Activate();
+		ADestroyedCar* carEffect = Cast<ADestroyedCar>(DestroyedCarEffect->GetChildActor());
+		if (carEffect)
+			carEffect->ActivateEffect();
+
+		GetVehicleMovement()->SetSteeringInput(0.f);
+		GetVehicleMovement()->SetThrottleInput(0.f);
+
+		is_alive = false;
+	
+		//GetWorld()->GetTimerManager().SetTimer(_TimerHandle, this, &ACar::OnEffectFinished, 6.0f, false);
+	}
+}
+void ACar::OnEffectFinished() {
+	//GetWorld()->GetTimerManager().ClearTimer(_TimerHandle);
+	ADestroyedCar* carEffect = Cast<ADestroyedCar>(DestroyedCarEffect->GetChildActor());
+	//carEffect->DeactivateEffect();
+}
+
+void ACar::OnInvincibilityEnd() {
+	GetWorld()->GetTimerManager().ClearTimer(invincibility_timer);
+	is_invincible = false;
+}
+
+void ACar::OnHit(AActor *SelfActor, AActor *OtherActor,
+				 FVector NormalImpulse, FHitResult const& Hit) {
+	if (!is_invincible && NormalImpulse.Size() > 140000.f)
+		ApplyDamage(NormalImpulse.Size() / armor / 80000.f);
+	virtual_on_hit(SelfActor, OtherActor, NormalImpulse, Hit);
+}
