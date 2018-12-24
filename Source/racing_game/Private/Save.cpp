@@ -2,7 +2,8 @@
 #include <stdexcept>
 USave::USave() : USave(EEquipementLevel::L0) {}
 USave::USave(EEquipementLevel default_level) {
-	Money = 0;
+	//Money = 0;
+	Money = 99999; //Temporary measure
 
 	CurrentEngineRPM         = default_level;
 	CurrentGearSwitchTime	 = default_level;

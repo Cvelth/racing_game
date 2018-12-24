@@ -195,7 +195,7 @@ void UCurrentVehicleSet::button_event(int row, int item) {
 		Savefile->CurrentByID(row) = EEquipementLevel::L0;
 	else if (Savefile->AvailabilityByID(row)[item - 1])
 		Savefile->CurrentByID(row) = level;
-	else
+	else {
 		if (Savefile->Money >= Savefile->Price(level)) {
 			Savefile->AvailabilityByID(row)[item - 1] = true;
 			Savefile->CurrentByID(row) = level;
@@ -204,6 +204,7 @@ void UCurrentVehicleSet::button_event(int row, int item) {
 			NotEnoughMoneyEvent();
 			return; 
 		}
+	}
 	update_button(buttons[row][old], button_type::inactive);
 	update_button(buttons[row][item], button_type::active);
 	UGameplayStatics::SaveGameToSlot(Savefile, Savefile->SaveSlotName, Savefile->UserIndex);

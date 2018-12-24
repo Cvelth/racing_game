@@ -1,26 +1,40 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Templates/Tuple.h"
 #include "CurrentVehicleSet.generated.h"
 
 UCLASS()
 class RACING_GAME_API UCurrentVehicleSet : public UUserWidget {
 	GENERATED_BODY()
-	
+
+	using ButtonHandle = TTuple<class UButton*, class UHorizontalBoxSlot*>;
+protected:
+	TArray<TArray<ButtonHandle>> buttons;
 public:
 	//UCurrentVehicleSet(FObjectInitializer const& oi);
 	virtual TSharedRef<SWidget> RebuildWidget() override;
+	class UCanvasPanel* update_root();
+	void update_widgets();
+	void update(bool full = false);
 
 	enum class button_type {
 		active, inactive, unavailable
 	};
-	class UButton* button(UPanelWidget *panel, button_type type, FString name, int number, int row);
-	TArray<class UButton*> row(UPanelWidget *panel, TArray<bool> availability, int current, FString name, int number);
-	TArray<class UButton*> item(UPanelWidget *panel, int index, FString name, FString title, TArray<bool> availability, int current);
+	ButtonHandle button(UPanelWidget *panel, button_type type, FString name, int number, int row);
+	TArray<ButtonHandle> row(UPanelWidget *panel, TArray<bool> availability, int current, FString name, int number);
+	TArray<ButtonHandle> item(UPanelWidget *panel, int index, FString name, FString title, TArray<bool> availability, int current);
 
 	void button_event(int row, int item);
 
 	void enable_events(UButton *b, int row, int item);
+
+	void update_button(ButtonHandle b, button_type new_type);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void PurchaseEvent();
+	UFUNCTION(BlueprintImplementableEvent)
+	void NotEnoughMoneyEvent();
 
 	UFUNCTION() void button_0_0();
 	UFUNCTION() void button_0_1();
