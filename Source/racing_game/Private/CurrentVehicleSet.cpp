@@ -165,14 +165,14 @@ TArray<UCurrentVehicleSet::ButtonHandle> UCurrentVehicleSet::item(UPanelWidget *
 	auto box = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), FName(*name));
 	auto box_slot = Cast<UCanvasPanelSlot>(panel->AddChild(box));
 	box_slot->SetSize(FVector2D(375, 75));
-	box_slot->SetPosition(FVector2D(1920 - 100, index * 80 + 150));
+	box_slot->SetPosition(FVector2D(1920 - 100 - 325, index * 80 + 150));
 
 	auto ret = row(box, availability, current, name + TEXT("_"), index);
 
 	auto text = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), FName(*(name + TEXT("_text"))));
 	auto text_slot = Cast<UCanvasPanelSlot>(panel->AddChild(text));
 	text_slot->SetSize(FVector2D(400 - 15, 75));
-	text_slot->SetPosition(FVector2D(1920 - 100 - 375, index * 80 + 150 + 25));
+	text_slot->SetPosition(FVector2D(1920 - 100 - 325 - 400, index * 80 + 150 + 25));
 
 	text->SetText(FText::FromString(title + TEXT(": ")));
 	text->SetJustification(ETextJustify::Right);

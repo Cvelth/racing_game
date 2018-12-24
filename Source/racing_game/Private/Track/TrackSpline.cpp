@@ -43,7 +43,8 @@ void ATrackSpline::generate_component(std::string name, UStaticMesh *mesh,
 #include <string>
 void ATrackSpline::BeginPlay() {
 	Super::BeginPlay();
-	randomize();
+	if (Autofill)
+		randomize();
 }
 void ATrackSpline::randomize() {
 	generate(15, 7000, 10000);

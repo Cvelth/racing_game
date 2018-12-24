@@ -27,6 +27,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SplineData")
 	USplineComponent *m_spline;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Map Data")
+	bool Autofill;
+
 public:
 	ATrackSpline();
 	void generate(int points, float min_dist, float max_dist);
