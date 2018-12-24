@@ -18,8 +18,6 @@ TSharedRef<SWidget> UCurrentVehicleSet::RebuildWidget() {
 		root = WidgetTree->ConstructWidget<UCanvasPanel>(UCanvasPanel::StaticClass(), TEXT("RootCanvas"));
 		auto slot = Cast<UCanvasPanelSlot>(root->Slot);
 		if (slot) {
-			//slot->SetAlignment(FVector2D(1, 0));
-			//slot->SetAnchors(FAnchors(375, 0, 0, 75));
 			slot->SetOffsets(FMargin(100, 100));
 		}
 	}
@@ -34,22 +32,18 @@ TSharedRef<SWidget> UCurrentVehicleSet::RebuildWidget() {
 		if (!Savefile)
 			Savefile = Cast<USave>(UGameplayStatics::CreateSaveGameObject(USave::StaticClass()));
 
-		auto box = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), TEXT("rpm"));
-		auto box_slot = Cast<UCanvasPanelSlot>(root->AddChild(box));
-		//box_slot->SetAlignment(FVector2D(1, 0));
-		box_slot->SetSize(FVector2D(375, 75));
-		box_slot->SetPosition(FVector2D(1920 - 100, 200));
-
-		auto _row = row(box, Savefile->EngineRPM, switch_EEquipementLevel(Savefile->CurrentEngineRPM), TEXT("rpm_"));
-
-		auto text = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), TEXT("rpm_text"));
-		auto text_slot = Cast<UCanvasPanelSlot>(root->AddChild(text));
-		//text_slot->SetAlignment(FVector2D(1, 0));
-		text_slot->SetSize(FVector2D(400 - 15, 75));
-		text_slot->SetPosition(FVector2D(1920 - 100 - 375, 200 + 25));
-
-		text->SetText(FText::FromString("Engine RPM: "));
-		text->SetJustification(ETextJustify::Right);
+		int i = 0;
+		TArray<TArray<UButton*>> buttons;
+		buttons.Add(item(root, i++, "rpm", "Engine RPM", Savefile->EngineRPM, switch_EEquipementLevel(Savefile->CurrentEngineRPM)));
+		buttons.Add(item(root, i++, "gear", "Gear Switch Time", Savefile->GearSwitchTime, switch_EEquipementLevel(Savefile->CurrentGearSwitchTime)));
+		buttons.Add(item(root, i++, "mass", "Mass", Savefile->Mass, switch_EEquipementLevel(Savefile->CurrentMass)));
+		buttons.Add(item(root, i++, "drag", "Drag Coefficient", Savefile->DragCoefficient, switch_EEquipementLevel(Savefile->CurrentDragCoefficient)));
+		buttons.Add(item(root, i++, "steer", "Maximum Steering Angle", Savefile->MaximumSteerAngle, switch_EEquipementLevel(Savefile->CurrentMaximumSteerAngle)));
+		buttons.Add(item(root, i++, "tire", "Tire Friction", Savefile->FrictionScale, switch_EEquipementLevel(Savefile->CurrentFrictionScale)));
+		buttons.Add(item(root, i++, "stiff", "Lateral Stiffness", Savefile->LatStiffness, switch_EEquipementLevel(Savefile->CurrentLatStiffness)));
+		buttons.Add(item(root, i++, "arm", "Armor", Savefile->Armor, switch_EEquipementLevel(Savefile->CurrentArmor)));
+		buttons.Add(item(root, i++, "dam", "Damage", Savefile->Damage, switch_EEquipementLevel(Savefile->CurrentDamage)));
+		buttons.Add(item(root, i++, "hp", "Maximum Health", Savefile->MaxHealth, switch_EEquipementLevel(Savefile->CurrentMaxHealth)));
 	}
 	return ret;
 }
@@ -120,5 +114,24 @@ TArray<class UButton*> UCurrentVehicleSet::row(UPanelWidget *panel, TArray<bool>
 			ret.Add(button(panel, button_type::inactive, name, i));
 		else
 			ret.Add(button(panel, button_type::unavailable, name, i));
+	return ret;
+}
+
+TArray<class UButton*> UCurrentVehicleSet::item(UPanelWidget *panel, int index, FString name, FString title, TArray<bool> availability, int current) {
+	auto box = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), FName(*name));
+	auto box_slot = Cast<UCanvasPanelSlot>(panel->AddChild(box));
+	box_slot->SetSize(FVector2D(375, 75));
+	box_slot->SetPosition(FVector2D(1920 - 100, index * 80 + 150));
+
+	auto ret = row(box, availability, current, name + TEXT("_"));
+
+	auto text = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), FName(*(name + TEXT("_text"))));
+	auto text_slot = Cast<UCanvasPanelSlot>(panel->AddChild(text));
+	text_slot->SetSize(FVector2D(400 - 15, 75));
+	text_slot->SetPosition(FVector2D(1920 - 100 - 375, index * 80 + 150 + 25));
+
+	text->SetText(FText::FromString(title + TEXT(": ")));
+	text->SetJustification(ETextJustify::Right);
+
 	return ret;
 }

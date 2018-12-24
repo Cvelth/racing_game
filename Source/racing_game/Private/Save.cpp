@@ -40,9 +40,9 @@ float USave::ConvertEngineRPM(EEquipementLevel level) {
 		case EEquipementLevel::L3:
 			return 6500.f;
 		case EEquipementLevel::L4:
-			return 6000.f;
+			return 7000.f;
 		case EEquipementLevel::L5:
-			return 6500.f;
+			return 7500.f;
 		default:
 			throw std::runtime_error("Unsupported enum value.");
 	}

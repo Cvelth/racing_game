@@ -16,4 +16,5 @@ public:
 	};
 	class UButton* button(UPanelWidget *panel, button_type type, FString name, int number);
 	TArray<class UButton*> row(UPanelWidget *panel, TArray<bool> availability, int current, FString name);
+	TArray<class UButton*> item(UPanelWidget *panel, int index, FString name, FString title, TArray<bool> availability, int current);
 };
