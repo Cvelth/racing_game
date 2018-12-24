@@ -11,6 +11,7 @@
 #include "Components/TextBlock.h"
 #include "Misc/Paths.h"
 #include "Save.h"
+#include <stdexcept>
 
 TSharedRef<SWidget> UCurrentVehicleSet::RebuildWidget() {
 	UPanelWidget* root = Cast<UPanelWidget>(GetRootWidget());
@@ -48,7 +49,7 @@ TSharedRef<SWidget> UCurrentVehicleSet::RebuildWidget() {
 	return ret;
 }
 
-class UButton* UCurrentVehicleSet::button(UPanelWidget *panel, button_type type, FString name, int number) {
+class UButton* UCurrentVehicleSet::button(UPanelWidget *panel, button_type type, FString name, int number, int row) {
 	name.AppendInt(number);
 	switch (type) {
 		case button_type::active: 
@@ -97,23 +98,24 @@ class UButton* UCurrentVehicleSet::button(UPanelWidget *panel, button_type type,
 			break;
 		}
 	}
+	enable_events(ret, row, number);
 	return ret;
 }
 
-TArray<class UButton*> UCurrentVehicleSet::row(UPanelWidget *panel, TArray<bool> availability, int current, FString name) {
+TArray<class UButton*> UCurrentVehicleSet::row(UPanelWidget *panel, TArray<bool> availability, int current, FString name, int number) {
 	TArray<class UButton*> ret;
 	if (current == 0)
-		ret.Add(button(panel, button_type::active, name, 0));
+		ret.Add(button(panel, button_type::active, name, 0, number));
 	else
-		ret.Add(button(panel, button_type::inactive, name, 0));
+		ret.Add(button(panel, button_type::inactive, name, 0, number));
 
 	for (int i = 1; i < availability.Num() + 1; i++)
 		if (current == i)
-			ret.Add(button(panel, button_type::active, name, i));
+			ret.Add(button(panel, button_type::active, name, i, number));
 		else if (availability[i - 1])
-			ret.Add(button(panel, button_type::inactive, name, i));
+			ret.Add(button(panel, button_type::inactive, name, i, number));
 		else
-			ret.Add(button(panel, button_type::unavailable, name, i));
+			ret.Add(button(panel, button_type::unavailable, name, i, number));
 	return ret;
 }
 
@@ -123,7 +125,7 @@ TArray<class UButton*> UCurrentVehicleSet::item(UPanelWidget *panel, int index, 
 	box_slot->SetSize(FVector2D(375, 75));
 	box_slot->SetPosition(FVector2D(1920 - 100, index * 80 + 150));
 
-	auto ret = row(box, availability, current, name + TEXT("_"));
+	auto ret = row(box, availability, current, name + TEXT("_"), index);
 
 	auto text = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), FName(*(name + TEXT("_text"))));
 	auto text_slot = Cast<UCanvasPanelSlot>(panel->AddChild(text));
@@ -135,3 +137,153 @@ TArray<class UButton*> UCurrentVehicleSet::item(UPanelWidget *panel, int index, 
 
 	return ret;
 }
+
+void UCurrentVehicleSet::button_event(int row, int item) {
+
+}
+
+void UCurrentVehicleSet::enable_events(UButton *b, int row, int item) {
+	switch (row) {
+		case 0:
+			switch (item) {
+				case 0: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_0_0);
+				case 1: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_0_1);
+				case 2: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_0_2);
+				case 3:	return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_0_3);
+				case 4: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_0_4);
+			}
+		case 1:
+			switch (item) {
+				case 0: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_1_0);
+				case 1: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_1_1);
+				case 2: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_1_2);
+				case 3:	return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_1_3);
+				case 4: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_1_4);
+			}
+		case 2:
+			switch (item) {
+				case 0: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_2_0);
+				case 1: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_2_1);
+				case 2: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_2_2);
+				case 3:	return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_2_3);
+				case 4: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_2_4);
+			}
+		case 3:
+			switch (item) {
+				case 0: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_3_0);
+				case 1: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_3_1);
+				case 2: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_3_2);
+				case 3:	return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_3_3);
+				case 4: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_3_4);
+			}
+		case 4:
+			switch (item) {
+				case 0: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_4_0);
+				case 1: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_4_1);
+				case 2: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_4_2);
+				case 3:	return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_4_3);
+				case 4: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_4_4);
+			}
+		case 5:
+			switch (item) {
+				case 0: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_5_0);
+				case 1: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_5_1);
+				case 2: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_5_2);
+				case 3:	return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_5_3);
+				case 4: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_5_4);
+			}
+		case 6:
+			switch (item) {
+				case 0: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_6_0);
+				case 1: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_6_1);
+				case 2: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_6_2);
+				case 3:	return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_6_3);
+				case 4: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_6_4);
+			}
+		case 7:
+			switch (item) {
+				case 0: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_7_0);
+				case 1: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_7_1);
+				case 2: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_7_2);
+				case 3:	return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_7_3);
+				case 4: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_7_4);
+			}
+		case 8:
+			switch (item) {
+				case 0: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_8_0);
+				case 1: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_8_1);
+				case 2: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_8_2);
+				case 3:	return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_8_3);
+				case 4: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_8_4);
+			}
+		case 9:
+			switch (item) {
+				case 0: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_9_0);
+				case 1: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_9_1);
+				case 2: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_9_2);
+				case 3:	return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_9_3);
+				case 4: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_9_4);
+			}
+	}
+	throw std::runtime_error("Unknown button event");
+}
+
+void UCurrentVehicleSet::button_0_0() { button_event(0, 0); }
+void UCurrentVehicleSet::button_0_1() { button_event(0, 1); }
+void UCurrentVehicleSet::button_0_2() { button_event(0, 2); }
+void UCurrentVehicleSet::button_0_3() { button_event(0, 3); }
+void UCurrentVehicleSet::button_0_4() { button_event(0, 4); }
+
+void UCurrentVehicleSet::button_1_0() { button_event(1, 0); }
+void UCurrentVehicleSet::button_1_1() { button_event(1, 1); }
+void UCurrentVehicleSet::button_1_2() { button_event(1, 2); }
+void UCurrentVehicleSet::button_1_3() { button_event(1, 3); }
+void UCurrentVehicleSet::button_1_4() { button_event(1, 4); }
+
+void UCurrentVehicleSet::button_2_0() { button_event(2, 0); }
+void UCurrentVehicleSet::button_2_1() { button_event(2, 1); }
+void UCurrentVehicleSet::button_2_2() { button_event(2, 2); }
+void UCurrentVehicleSet::button_2_3() { button_event(2, 3); }
+void UCurrentVehicleSet::button_2_4() { button_event(2, 4); }
+
+void UCurrentVehicleSet::button_3_0() { button_event(3, 0); }
+void UCurrentVehicleSet::button_3_1() { button_event(3, 1); }
+void UCurrentVehicleSet::button_3_2() { button_event(3, 2); }
+void UCurrentVehicleSet::button_3_3() { button_event(3, 3); }
+void UCurrentVehicleSet::button_3_4() { button_event(3, 4); }
+
+void UCurrentVehicleSet::button_4_0() { button_event(4, 0); }
+void UCurrentVehicleSet::button_4_1() { button_event(4, 1); }
+void UCurrentVehicleSet::button_4_2() { button_event(4, 2); }
+void UCurrentVehicleSet::button_4_3() { button_event(4, 3); }
+void UCurrentVehicleSet::button_4_4() { button_event(4, 4); }
+
+void UCurrentVehicleSet::button_5_0() { button_event(5, 0); }
+void UCurrentVehicleSet::button_5_1() { button_event(5, 1); }
+void UCurrentVehicleSet::button_5_2() { button_event(5, 2); }
+void UCurrentVehicleSet::button_5_3() { button_event(5, 3); }
+void UCurrentVehicleSet::button_5_4() { button_event(5, 4); }
+
+void UCurrentVehicleSet::button_6_0() { button_event(6, 0); }
+void UCurrentVehicleSet::button_6_1() { button_event(6, 1); }
+void UCurrentVehicleSet::button_6_2() { button_event(6, 2); }
+void UCurrentVehicleSet::button_6_3() { button_event(6, 3); }
+void UCurrentVehicleSet::button_6_4() { button_event(6, 4); }
+								
+void UCurrentVehicleSet::button_7_0() { button_event(7, 0); }
+void UCurrentVehicleSet::button_7_1() { button_event(7, 1); }
+void UCurrentVehicleSet::button_7_2() { button_event(7, 2); }
+void UCurrentVehicleSet::button_7_3() { button_event(7, 3); }
+void UCurrentVehicleSet::button_7_4() { button_event(7, 4); }
+
+void UCurrentVehicleSet::button_8_0() { button_event(8, 0); }
+void UCurrentVehicleSet::button_8_1() { button_event(8, 1); }
+void UCurrentVehicleSet::button_8_2() { button_event(8, 2); }
+void UCurrentVehicleSet::button_8_3() { button_event(8, 3); }
+void UCurrentVehicleSet::button_8_4() { button_event(8, 4); }
+
+void UCurrentVehicleSet::button_9_0() { button_event(9, 0); }
+void UCurrentVehicleSet::button_9_1() { button_event(9, 1); }
+void UCurrentVehicleSet::button_9_2() { button_event(9, 2); }
+void UCurrentVehicleSet::button_9_3() { button_event(9, 3); }
+void UCurrentVehicleSet::button_9_4() { button_event(9, 4); }
