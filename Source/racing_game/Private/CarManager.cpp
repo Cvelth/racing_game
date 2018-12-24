@@ -7,6 +7,8 @@
 #include "Trees.h"
 #include "GameFramework/Controller.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "UObject/ConstructorHelpers.h"
+#include "Misc/OutputDeviceDebug.h"
 
 ACarManager::ACarManager() {
 	PrimaryActorTick.bCanEverTick = true;
@@ -16,6 +18,9 @@ ACarManager::ACarManager() {
 	sphere->SetCollisionProfileName("Start");
 	sphere->OnComponentBeginOverlap.AddDynamic(this, &ACarManager::OnOverlap);
 	sphere->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+
+	static ConstructorHelpers::FClassFinder<UUserWidget> HUD_Finder(TEXT("WidgetBlueprint'/Game/Menu/HUDWidget.HUDWidget_C'"));
+	HUD = CreateWidget<UUserWidget>(GetWorld(), HUD_Finder.Class);
 }
 FVector location_switch(int index) {
 	switch (index) {
@@ -57,6 +62,8 @@ void ACarManager::BeginPlay() {
 		m_data->current_time = 0;
 		m_data->laps_left = m_data->lap_number;
 	}
+
+	HUD->AddToViewport();
 	start_time = std::chrono::high_resolution_clock::now();
 }
 void ACarManager::Tick(float DeltaTime) {
@@ -64,6 +71,19 @@ void ACarManager::Tick(float DeltaTime) {
 	if (m_data) {
 		m_data->current_time = std::chrono::duration<float, std::milli>(std::chrono::high_resolution_clock::now() - start_time).count();
 	}
+	USave* Savefile = Cast<USave>(UGameplayStatics::CreateSaveGameObject(USave::StaticClass()));
+	Savefile = Cast<USave>(UGameplayStatics::LoadGameFromSlot(Savefile->SaveSlotName, Savefile->UserIndex));
+	if (!Savefile)
+		Savefile = Cast<USave>(UGameplayStatics::CreateSaveGameObject(USave::StaticClass()));
+
+	const FString command = FString::Printf(TEXT("update %f %f %d %d %f"), 
+											m_data->current_time / 1000, 
+											Savefile->record / 1000, 
+											m_data->laps_left,
+											cars[0].Get<0>()->get_gear(),
+											cars[0].Get<0>()->get_speed());
+	static FOutputDeviceDebug temp;
+	HUD->CallFunctionByNameWithArguments(*command, temp, this, true);
 }
 
 void ACarManager::OnOverlap(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult) {
@@ -83,13 +103,28 @@ void ACarManager::OutOfTime() {
 }
 
 void ACarManager::Win(ACar *car) {
+	auto finish_time = std::chrono::duration<float, std::milli>(std::chrono::high_resolution_clock::now() - start_time).count();
 	if (car == cars[0].Get<0>()) {
+		USave* Savefile = Cast<USave>(UGameplayStatics::CreateSaveGameObject(USave::StaticClass()));
+		Savefile = Cast<USave>(UGameplayStatics::LoadGameFromSlot(Savefile->SaveSlotName, Savefile->UserIndex));
+		if (!Savefile)
+			Savefile = Cast<USave>(UGameplayStatics::CreateSaveGameObject(USave::StaticClass()));
 
+		Savefile->Money += 400;
+		if (finish_time < Savefile->record) {
+			Savefile->record = finish_time;
+			Savefile->Money += 200;
+		}
+
+		UGameplayStatics::SaveGameToSlot(Savefile, Savefile->SaveSlotName, Savefile->UserIndex);
+		HUD->RemoveFromParent();
+		UGameplayStatics::OpenLevel(GetWorld(), "MainMenuMap");
 		WinEvent();
 	}
 	else
 		Lose();
 }
 void ACarManager::Lose() {
+	HUD->RemoveFromParent();
 	LoseEvent();
 }

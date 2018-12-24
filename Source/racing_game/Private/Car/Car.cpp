@@ -20,7 +20,7 @@ ACar::ACar() : AWheeledVehicle() {
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
-	SpringArm->SetRelativeLocation(FVector(0,0,250));
+	SpringArm->SetRelativeLocation(FVector(0, 0, 250));
 	SpringArm->AddLocalRotation(FRotator(-10, 0, 0));
 	SpringArm->TargetArmLength = 500.0f;
 
@@ -223,4 +223,11 @@ void ACar::OnHit(AActor *SelfActor, AActor *OtherActor,
 	if (!is_invincible && NormalImpulse.Size() > 140000.f)
 		ApplyDamage(NormalImpulse.Size() / armor / 80000.f);
 	virtual_on_hit(SelfActor, OtherActor, NormalImpulse, Hit);
+}
+
+float ACar::get_speed() {
+	return GetVelocity().Size2D();
+}
+int ACar::get_gear() {
+	return GetVehicleMovement()->GetCurrentGear();
 }

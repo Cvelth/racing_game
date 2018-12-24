@@ -5,7 +5,7 @@ USave::USave(EEquipementLevel default_level) {
 	//Money = 0;
 	Money = 99999; //Temporary measure
 
-	record = 9999;
+	record = 99999999;
 
 	CurrentEngineRPM         = default_level;
 	CurrentGearSwitchTime	 = default_level;

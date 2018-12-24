@@ -43,10 +43,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
 	TSubclassOf<class UUserWidget> HealthBarClass;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Widgets")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
 	UWidgetComponent *HealthBar;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Widgets")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
 	UUserWidget *PauseWidget;
 
 	void MoveForward(float value);
@@ -72,4 +72,7 @@ public:
 
 	virtual void virtual_on_hit(AActor *SelfActor, AActor *OtherActor,
 								FVector NormalImpulse, FHitResult const& Hit) {}
+
+	float get_speed();
+	int get_gear();
 };
