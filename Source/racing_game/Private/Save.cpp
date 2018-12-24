@@ -15,18 +15,18 @@ USave::USave(EEquipementLevel default_level) {
 	CurrentDamage			 = default_level;
 	CurrentMaxHealth		 = default_level;
 
-	EngineRPM.Init(false, 4);			
-	GearSwitchTime.Init(false, 4);		
-	Mass.Init(false, 4);				
-	DragCoefficient.Init(false, 4);		
-	MaximumSteerAngle.Init(false, 4);	
-	FrictionScale.Init(false, 4);		
-	LatStiffness.Init(false, 4);		
-	Armor.Init(false, 4);				
-	Damage.Init(false, 4);				
-	MaxHealth.Init(false, 4);			
+	EngineRPM.Init(false, 4);
+	GearSwitchTime.Init(false, 4);
+	Mass.Init(false, 4);
+	DragCoefficient.Init(false, 4);
+	MaximumSteerAngle.Init(false, 4);
+	FrictionScale.Init(false, 4);
+	LatStiffness.Init(false, 4);
+	Armor.Init(false, 4);
+	Damage.Init(false, 4);
+	MaxHealth.Init(false, 4);
 
-	SaveSlotName = TEXT("SaveSlot");
+	SaveSlotName = TEXT("Savefile");
 	UserIndex = 0;
 }
 float USave::ConvertEngineRPM(EEquipementLevel level) {
@@ -238,4 +238,61 @@ int switch_EEquipementLevel(EEquipementLevel level) {
 		case EEquipementLevel::L5: return 5;
 		default: return -1;
 	}
+}
+EEquipementLevel make_EEquipementLevel(int level) {
+	switch (level) {
+		case 0: return EEquipementLevel::L0;
+		case 1: return EEquipementLevel::L1;
+		case 2: return EEquipementLevel::L2;
+		case 3: return EEquipementLevel::L3;
+		case 4: return EEquipementLevel::L4;
+		case 5: return EEquipementLevel::L5;
+	}
+	throw std::runtime_error("Unknown button event");
+}
+
+float USave::GetByID(int id) {
+	switch (id) {
+		case 0: return GetEngineRPM();
+		case 1: return GetGearSwitchTime();
+		case 2: return GetMass();
+		case 3: return GetDragCoefficient();
+		case 4: return GetMaximumSteerAngle();
+		case 5: return GetFrictionScale();
+		case 6: return GetLatStiffness();
+		case 7: return GetArmor();
+		case 8: return GetDamage();
+		case 9: return GetMaxHealth();
+	}
+	throw std::runtime_error("Unknown button event");
+}
+EEquipementLevel& USave::CurrentByID(int id) {
+	switch (id) {
+		case 0: return CurrentEngineRPM;
+		case 1: return CurrentGearSwitchTime;
+		case 2: return CurrentMass;
+		case 3: return CurrentDragCoefficient;
+		case 4: return CurrentMaximumSteerAngle;
+		case 5: return CurrentFrictionScale;
+		case 6: return CurrentLatStiffness;
+		case 7: return CurrentArmor;
+		case 8: return CurrentDamage;
+		case 9: return CurrentMaxHealth;
+	}
+	throw std::runtime_error("Unknown button event");
+}
+TArray<bool>& USave::AvailabilityByID(int id) {
+	switch (id) {
+		case 0: return EngineRPM;
+		case 1: return GearSwitchTime;
+		case 2: return Mass;
+		case 3: return DragCoefficient;
+		case 4: return MaximumSteerAngle;
+		case 5: return FrictionScale;
+		case 6: return LatStiffness;
+		case 7: return Armor;
+		case 8: return Damage;
+		case 9: return MaxHealth;
+	}
+	throw std::runtime_error("Unknown button event");
 }

@@ -14,6 +14,7 @@ enum class EEquipementLevel : uint8 {
 	L5 UMETA(DisplayName = "Level 5")
 };
 int switch_EEquipementLevel(EEquipementLevel level);
+EEquipementLevel make_EEquipementLevel(int level);
 
 UCLASS()
 class RACING_GAME_API USave : public USaveGame {
@@ -106,8 +107,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	static float Price(EEquipementLevel level);
-
-
+	
 	UFUNCTION(BlueprintCallable)
 	float GetEngineRPM() {
 		return ConvertEngineRPM(CurrentEngineRPM);
@@ -148,4 +148,11 @@ public:
 	float GetMaxHealth() {
 		return ConvertMaxHealth(CurrentMaxHealth);
 	}
+
+	UFUNCTION(BlueprintCallable)
+	float GetByID(int id);
+	UFUNCTION(BlueprintCallable)
+	EEquipementLevel& CurrentByID(int id);
+	UFUNCTION(BlueprintCallable)
+	TArray<bool>& AvailabilityByID(int id);
 };

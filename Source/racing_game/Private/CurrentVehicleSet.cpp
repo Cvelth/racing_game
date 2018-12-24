@@ -27,7 +27,6 @@ TSharedRef<SWidget> UCurrentVehicleSet::RebuildWidget() {
 	auto ret = Super::RebuildWidget();
 
 	if (root && WidgetTree) {
-
 		USave* Savefile = Cast<USave>(UGameplayStatics::CreateSaveGameObject(USave::StaticClass()));
 		Savefile = Cast<USave>(UGameplayStatics::LoadGameFromSlot(Savefile->SaveSlotName, Savefile->UserIndex));
 		if (!Savefile)
@@ -139,7 +138,26 @@ TArray<class UButton*> UCurrentVehicleSet::item(UPanelWidget *panel, int index, 
 }
 
 void UCurrentVehicleSet::button_event(int row, int item) {
+	USave* Savefile = Cast<USave>(UGameplayStatics::CreateSaveGameObject(USave::StaticClass()));
+	Savefile = Cast<USave>(UGameplayStatics::LoadGameFromSlot(Savefile->SaveSlotName, Savefile->UserIndex));
+	if (!Savefile)
+		Savefile = Cast<USave>(UGameplayStatics::CreateSaveGameObject(USave::StaticClass()));
 
+	if (switch_EEquipementLevel(Savefile->CurrentByID(row)) == item) {
+		return; //Already selected.
+
+		auto level = make_EEquipementLevel(item);
+		if (Savefile->AvailabilityByID(row)[item - 1]) {
+			Savefile->CurrentByID(row) = level;
+		} else {
+			if (Savefile->Money >= Savefile->Price(level)) {
+				Savefile->AvailabilityByID(row)[item - 1] = true;
+				Savefile->CurrentByID(row) = level;
+			} else {
+				return; //Not enough money.
+			}
+		}
+	}
 }
 
 void UCurrentVehicleSet::enable_events(UButton *b, int row, int item) {
