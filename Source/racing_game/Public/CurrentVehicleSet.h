@@ -9,11 +9,11 @@ class RACING_GAME_API UCurrentVehicleSet : public UUserWidget {
 	
 public:
 	//UCurrentVehicleSet(FObjectInitializer const& oi);
-	void Construct();
+	virtual TSharedRef<SWidget> RebuildWidget() override;
 
 	enum class button_type {
 		active, inactive, unavailable
 	};
-	class UButton* button(button_type type, FName name, int number);
-	TArray<class UButton*> row(TArray<bool> availability, int current, FName name);
+	class UButton* button(UPanelWidget *panel, button_type type, FString name, int number);
+	TArray<class UButton*> row(UPanelWidget *panel, TArray<bool> availability, int current, FString name);
 };
