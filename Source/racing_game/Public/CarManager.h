@@ -3,6 +3,7 @@
 #include "GameFramework/Actor.h"
 #include "Components/SphereComponent.h"
 //#include "Car.h"
+#include <chrono>
 #include "Templates/Tuple.h"
 #include "CarManager.generated.h"
 
@@ -19,6 +20,8 @@ protected:
 	virtual void BeginPlay() override;
 
 	FTimerHandle TimerHandle;
+	std::chrono::time_point<std::chrono::high_resolution_clock> start_time;
+	class UGameData *m_data;
 
 public:	
 	virtual void Tick(float DeltaTime) override;
@@ -28,6 +31,9 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "TreeData")
 	class ATrees *trees;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
+	UUserWidget *PauseWidget;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")
 	USphereComponent* sphere;
@@ -43,7 +49,12 @@ public:
 	void OutOfTime();
 
 	UFUNCTION()
-	void Win(ACar *car) {}
+	void Win(ACar *car);
 	UFUNCTION()
-	void Lose(ACar *car) {}
+	void Lose();
+	
+	UFUNCTION(BlueprintImplementableEvent)
+	void WinEvent();
+	UFUNCTION(BlueprintImplementableEvent)
+	void LoseEvent();
 };

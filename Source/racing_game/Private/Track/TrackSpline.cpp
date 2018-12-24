@@ -4,6 +4,7 @@ ATrackSpline::ATrackSpline() {
 	PrimaryActorTick.bCanEverTick = false;
 	//generate(15, 7000, 10000);
 	//randomize();
+	m_spline->SetClosedLoop(true);
 }
 
 auto const M_PI = 3.14159265358979323846;
@@ -22,7 +23,6 @@ void ATrackSpline::generate(int points, float min_dist, float max_dist) {
 	for (float f = step; f < 2.f * M_PI; f += step)
 		m_spline->AddSplinePoint(FVector(number(random) * cos(f), number(random) * sin(f), 0), ESplineCoordinateSpace::World);
 
-	m_spline->SetClosedLoop(true);
 	m_spline->UpdateSpline();
 	is_ready = true;
 }

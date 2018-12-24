@@ -46,13 +46,16 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Widgets")
 	UWidgetComponent *HealthBar;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Widgets")
+	UUserWidget *PauseWidget;
+
 	void MoveForward(float value);
 	void MoveRight(float value);
 	void HandbrakeOn();
 	void HandbrakeOff();
 	void StartFire();
 	void StopFire();
-	void cheat();
+	void Pause();
 
 	void ApplyDamage(float value);
 	void Die();

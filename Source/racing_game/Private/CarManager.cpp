@@ -33,29 +33,37 @@ void ACarManager::BeginPlay() {
 	track->randomize();
 	trees->randomize();
 
-	UGameData* data = Cast<UGameData>(UGameplayStatics::GetGameInstance(GetWorld()));
-	if (data) {
+	m_data = Cast<UGameData>(UGameplayStatics::GetGameInstance(GetWorld()));
+	if (m_data) {
 		FActorSpawnParameters params;
 		params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 		auto car = GetWorld()->SpawnActor<ACar>(sphere->GetComponentLocation() + location_switch(0),
 											   FRotator(0, 90, 0), params);
-		cars.Emplace(car, data->lap_number);
-		for (int i = 0; i < data->AI_car_number; i++) {
+		car->PauseWidget = PauseWidget;
+		cars.Emplace(car, m_data->lap_number);
+		for (int i = 0; i < m_data->AI_car_number; i++) {
 			auto car = GetWorld()->SpawnActor<ACarAI>(sphere->GetComponentLocation() + location_switch(i + 1),
 													  FRotator(0, 90, 0), params);
 			car->set_track(track);
 			car->SpawnDefaultController();
-			cars.Emplace(car, data->lap_number);
+			cars.Emplace(car, m_data->lap_number);
 		}
-		if (data->time_limit != 0.f)
-			GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACarManager::OutOfTime, data->time_limit, false);
+		if (m_data->time_limit != 0.f)
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACarManager::OutOfTime, m_data->time_limit, false);
 
 		GetWorld()->GetFirstPlayerController()->UnPossess();
 		GetWorld()->GetFirstPlayerController()->Possess(car);
+	
+		m_data->current_time = 0;
+		m_data->laps_left = m_data->lap_number;
 	}
+	start_time = std::chrono::high_resolution_clock::now();
 }
 void ACarManager::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
+	if (m_data) {
+		m_data->current_time = std::chrono::duration<float, std::milli>(std::chrono::high_resolution_clock::now() - start_time).count();
+	}
 }
 
 void ACarManager::OnOverlap(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult) {
@@ -63,12 +71,25 @@ void ACarManager::OnOverlap(UPrimitiveComponent* HitComp, AActor* OtherActor, UP
 		return OtherActor == tuple.Key;
 	});
 	if (found) {
-		found->Value--;
-		if (found->Value <= 0)
-			Win(found->Key);
+		found->Get<1>()--;
+		if (found->Get<1>() <= 0)
+			Win(found->Get<0>());
+		if (found->Get<0>() == cars[0].Get<0>() && m_data)
+			m_data->laps_left = found->Get<1>();
 	}
 }
 void ACarManager::OutOfTime() {
-	Lose(cars[0].Key);
-	//Game over.
+	Lose();
+}
+
+void ACarManager::Win(ACar *car) {
+	if (car == cars[0].Get<0>()) {
+
+		WinEvent();
+	}
+	else
+		Lose();
+}
+void ACarManager::Lose() {
+	LoseEvent();
 }

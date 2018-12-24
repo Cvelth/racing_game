@@ -20,4 +20,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
 	float time_limit;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+	float current_time;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+	int32 laps_left;
 };

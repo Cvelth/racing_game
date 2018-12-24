@@ -31,6 +31,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic")
 	int32 UserIndex;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic")
+	float record;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Money")
 	int32 Money;
 

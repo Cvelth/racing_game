@@ -202,7 +202,7 @@ void UCurrentVehicleSet::button_event(int row, int item) {
 			Savefile->Money -= Savefile->Price(level);
 		} else {
 			NotEnoughMoneyEvent();
-			return; 
+			return;
 		}
 	update_button(buttons[row][old], button_type::inactive);
 	update_button(buttons[row][item], button_type::active);
