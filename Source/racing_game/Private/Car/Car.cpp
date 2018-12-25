@@ -208,10 +208,11 @@ void ACar::Pause() {
 void ACar::Restart() {
 	auto location = track->m_spline->FindLocationClosestToWorldLocation(GetActorLocation(), ESplineCoordinateSpace::World);
 	auto rotation = track->m_spline->FindRotationClosestToWorldLocation(GetActorLocation(), ESplineCoordinateSpace::World);
+	this->TeleportTo(location, rotation);
 
-	FHitResult hit_result;
-	if (GetWorld()->LineTraceSingleByChannel(hit_result, FVector(location.X, location.Y, 1000), FVector(location.X, location.Y, -1000), ECollisionChannel::ECC_WorldStatic))
-		SetActorLocationAndRotation(hit_result.Location, rotation, false, nullptr, ETeleportType::ResetPhysics);
+	//FHitResult hit_result;
+	//if (GetWorld()->LineTraceSingleByChannel(hit_result, FVector(location.X, location.Y, 1000), FVector(location.X, location.Y, -1000), ECollisionChannel::ECC_WorldStatic))
+	//	SetActorLocationAndRotation(hit_result.Location, rotation, false, nullptr, ETeleportType::ResetPhysics);
 }
 void ACar::ApplyDamage(float value) {
 	if (is_alive) {

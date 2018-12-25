@@ -85,7 +85,7 @@ void ACarAI::Tick(float DeltaTime) {
 
 	if (near_wall > 0.f) {
 		//steering_value = -steering_value;
-		throttle_value = -throttle_value;
+		//throttle_value = -throttle_value;
 
 		near_wall -= DeltaTime;
 	}
