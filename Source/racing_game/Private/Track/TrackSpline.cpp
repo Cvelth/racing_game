@@ -12,20 +12,6 @@ auto const M_PI = 3.14159265358979323846;
 #include <cmath>
 #include <random>
 #include "Components/SplineMeshComponent.h"
-void ATrackSpline::generate(int points, float min_dist, float max_dist) {
-	std::mt19937_64 random(std::random_device{}());
-	std::uniform_real_distribution<float> number(min_dist, max_dist);
-
-	is_ready = false;
-	m_spline->ClearSplinePoints();
-	float const step = 2.f * M_PI / points;
-	m_spline->AddSplinePoint(FVector(min_dist * cos(0), min_dist * sin(0), 0), ESplineCoordinateSpace::World);
-	for (float f = step; f < 2.f * M_PI; f += step)
-		m_spline->AddSplinePoint(FVector(number(random) * cos(f), number(random) * sin(f), 0), ESplineCoordinateSpace::World);
-
-	m_spline->UpdateSpline();
-	is_ready = true;
-}
 void ATrackSpline::generate_component(std::string name, UStaticMesh *mesh,
 									  FVector &start_location, FVector &start_tangent,
 									  FVector &end_location, FVector &end_tangent) {
@@ -44,10 +30,22 @@ void ATrackSpline::generate_component(std::string name, UStaticMesh *mesh,
 void ATrackSpline::BeginPlay() {
 	Super::BeginPlay();
 	if (Autofill)
-		randomize();
+		generate();
 }
-void ATrackSpline::randomize() {
-	generate(15, 7000, 10000);
+void ATrackSpline::generate() {
+	int points = 15;
+	float min_dist = 7000, max_dist = 10000;
+
+	std::mt19937_64 random(std::random_device{}());
+	std::uniform_real_distribution<float> number(min_dist, max_dist);
+
+	m_spline->ClearSplinePoints();
+	float const step = 2.f * M_PI / points;
+	m_spline->AddSplinePoint(FVector(min_dist * cos(0), min_dist * sin(0), 0), ESplineCoordinateSpace::World);
+	for (float f = step; f < 2.f * M_PI; f += step)
+		m_spline->AddSplinePoint(FVector(number(random) * cos(f), number(random) * sin(f), 0), ESplineCoordinateSpace::World);
+
+	m_spline->UpdateSpline();
 
 	FVector end_location, end_tangent;
 	m_spline->GetLocationAndTangentAtSplinePoint(m_spline->GetNumberOfSplinePoints() - 1,

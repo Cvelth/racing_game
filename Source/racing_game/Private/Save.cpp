@@ -166,15 +166,15 @@ float USave::ConvertArmor(EEquipementLevel level) {
 		case EEquipementLevel::L0:
 			return 1.f;
 		case EEquipementLevel::L1:
-			return 1.5f;
+			return 1.2f;
 		case EEquipementLevel::L2:
-			return 2.f;
+			return 1.4f;
 		case EEquipementLevel::L3:
-			return 2.5f;
+			return 1.6f;
 		case EEquipementLevel::L4:
-			return 3.f;
+			return 1.8f;
 		case EEquipementLevel::L5:
-			return 3.5f;
+			return 2.0f;
 		default:
 			throw std::runtime_error("Unsupported enum value.");
 	}
@@ -182,17 +182,17 @@ float USave::ConvertArmor(EEquipementLevel level) {
 float USave::ConvertDamage(EEquipementLevel level) {
 	switch (level) {
 		case EEquipementLevel::L0:
-			return 5.f;
-		case EEquipementLevel::L1:
-			return 15.f;
-		case EEquipementLevel::L2:
-			return 30.f;
-		case EEquipementLevel::L3:
 			return 40.f;
-		case EEquipementLevel::L4:
+		case EEquipementLevel::L1:
 			return 50.f;
-		case EEquipementLevel::L5:
+		case EEquipementLevel::L2:
+			return 60.f;
+		case EEquipementLevel::L3:
+			return 70.f;
+		case EEquipementLevel::L4:
 			return 80.f;
+		case EEquipementLevel::L5:
+			return 100.f;
 		default:
 			throw std::runtime_error("Unsupported enum value.");
 	}

@@ -66,9 +66,6 @@ void AWeapon::Deactivate() {
 void AWeapon::TimerCallback() {
 	bTimerRunning = false;
 }
-void AWeapon::Destroyed() {
-	Super::Destroyed();
-}
 
 void AWeapon::PerformFireWeapon() {
 	FVector position = left_or_right ? LeftGun->GetComponentLocation() : RightGun->GetComponentLocation();

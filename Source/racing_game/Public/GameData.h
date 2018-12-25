@@ -18,8 +18,6 @@ class RACING_GAME_API UGameData : public UGameInstance {
 public:
 	UGameData();
 
-	virtual void Init() override;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
 	RaceType type;
 

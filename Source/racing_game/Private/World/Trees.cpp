@@ -19,14 +19,14 @@ ATrees::ATrees() {
 void ATrees::BeginPlay() {
 	Super::BeginPlay();
 	if (Autofill)
-		randomize();
+		generate();
 }
 
 void ATrees::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
 }
 
-void ATrees::randomize() {
+void ATrees::generate() {
 	TActorIterator<AInstancedFoliageActor> foliageIterator(GetWorld());
 	AInstancedFoliageActor* foliageActor = *foliageIterator;
 

@@ -37,8 +37,8 @@ FVector location_switch(int index) {
 }
 void ACarManager::BeginPlay() {
 	Super::BeginPlay();
-	track->randomize();
-	trees->randomize();
+	track->generate();
+	trees->generate();
 
 	m_data = Cast<UGameData>(UGameplayStatics::GetGameInstance(GetWorld()));
 	if (m_data) {
@@ -99,8 +99,11 @@ void ACarManager::OnOverlap(UPrimitiveComponent* HitComp, AActor* OtherActor, UP
 		});
 		if (found) {
 			found->Get<1>()--;
-			if (found->Get<1>() <= 0)
-				Win(found->Get<0>());
+			if (found->Get<1>() == 0)
+				if (found->Get<0>() == cars[0].Get<0>())
+					Win(found->Get<0>());
+				else
+					Lose();
 			if (found->Get<0>() == cars[0].Get<0>() && m_data)
 				m_data->laps_left = found->Get<1>();
 		}
@@ -140,7 +143,7 @@ void ACarManager::Lose() {
 void ACarManager::has_died(ACar *car) {
 	if (car == cars[0].Get<0>())
 		Lose();
-	else if (m_data->type == RaceType::Survival) {
+	else if (m_data->type == RaceType::Survival || m_data->type == RaceType::Duel) {
 		auto found = cars.FindByPredicate([car](auto const& tuple) {
 			return car == tuple.Key;
 		});

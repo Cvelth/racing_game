@@ -34,5 +34,5 @@ public:
 	bool Autofill;
 
 	UFUNCTION()
-	void randomize();
+	void generate();
 };

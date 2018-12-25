@@ -18,7 +18,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-
+	 
 	FTimerHandle TimerHandle;
 	std::chrono::time_point<std::chrono::high_resolution_clock> start_time;
 	class UGameData *m_data;
