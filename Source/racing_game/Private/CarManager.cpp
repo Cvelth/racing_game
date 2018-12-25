@@ -26,12 +26,12 @@ ACarManager::ACarManager() {
 }
 FVector location_switch(int index) {
 	switch (index) {
-		case 0: return FVector(-200, +000, 0);
-		case 1: return FVector(+200, +900, 0);
-		case 2: return FVector(-200, +600, 0);
-		case 3: return FVector(+200, +300, 0);
-		case 4: return FVector(+200, -300, 0);
-		case 5: return FVector(-200, -600, 0);
+		case 0: return FVector(-350, +000, 0);
+		case 1: return FVector(+350, +900, 0);
+		case 2: return FVector(-350, +600, 0);
+		case 3: return FVector(+350, +300, 0);
+		case 4: return FVector(+350, -300, 0);
+		case 5: return FVector(-350, -600, 0);
 		default: return FVector(0, 0, 0);
 	}
 }
@@ -148,7 +148,7 @@ void ACarManager::has_died(ACar *car) {
 			return car == tuple.Key;
 		});
 		if (found) {
-			cars.Remove(*found);
+			//cars.Remove(*found);
 			if (cars.Num() <= 1)
 				Win(cars[0].Get<0>());
 		}

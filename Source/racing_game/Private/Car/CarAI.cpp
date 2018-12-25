@@ -44,7 +44,7 @@ ACarAI::ACarAI() : ACar() {
 }
 void ACarAI::BeginPlay() {
 	Super::BeginPlay();
-	GetMesh()->SetAllMassScale(0.8);
+	//GetMesh()->SetAllMassScale(0.8);
 	near_wall = 0.0;
 }
 

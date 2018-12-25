@@ -74,17 +74,17 @@ float USave::ConvertGearSwitchTime(EEquipementLevel level) {
 float USave::ConvertMass(EEquipementLevel level) {
 	switch (level) {
 		case EEquipementLevel::L0:
-			return 2000.f;
+			return 3000.f;
 		case EEquipementLevel::L1:
-			return 1800.f;
+			return 2800.f;
 		case EEquipementLevel::L2:
-			return 1600.f;
+			return 2600.f;
 		case EEquipementLevel::L3:
-			return 1400.f;
+			return 2400.f;
 		case EEquipementLevel::L4:
-			return 1200.f;
+			return 2200.f;
 		case EEquipementLevel::L5:
-			return 1000.f;
+			return 2000.f;
 		default:
 			throw std::runtime_error("Unsupported enum value.");
 	}
