@@ -87,6 +87,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bought Equipment")
 	TArray<bool> MaxHealth;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Currently Equipped")
+	int CurrentPaint;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bought Equipment")
+	TArray<bool> Paint;
+
 	UFUNCTION(BlueprintCallable)
 	static float ConvertEngineRPM(EEquipementLevel level);
 	UFUNCTION(BlueprintCallable)
@@ -107,9 +112,13 @@ public:
 	static float ConvertDamage(EEquipementLevel level);
 	UFUNCTION(BlueprintCallable)
 	static float ConvertMaxHealth(EEquipementLevel level);
+	UFUNCTION(BlueprintCallable)
+	static FLinearColor ConvertPaint(int level);
 
 	UFUNCTION(BlueprintCallable)
 	static float Price(EEquipementLevel level);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Money")
+	float PaintPrice;
 	
 	UFUNCTION(BlueprintCallable)
 	float GetEngineRPM() {
@@ -150,6 +159,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	float GetMaxHealth() {
 		return ConvertMaxHealth(CurrentMaxHealth);
+	}
+	UFUNCTION(BlueprintCallable)
+	FLinearColor GetPaint() {
+		return ConvertPaint(CurrentPaint);
 	}
 
 	UFUNCTION(BlueprintCallable)

@@ -9,6 +9,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Misc/OutputDeviceDebug.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 ACarManager::ACarManager() {
 	PrimaryActorTick.bCanEverTick = true;
@@ -43,7 +44,7 @@ void ACarManager::BeginPlay() {
 		FActorSpawnParameters params;
 		params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 		auto car = GetWorld()->SpawnActor<ACar>(sphere->GetComponentLocation() + location_switch(0),
-											   FRotator(0, 90, 0), params);
+											   FRotator(0, 90, 0), params); 
 		car->PauseWidget = PauseWidget;
 		cars.Emplace(car, m_data->lap_number);
 		for (int i = 0; i < m_data->AI_car_number; i++) {

@@ -6,6 +6,7 @@ USave::USave(EEquipementLevel default_level) {
 	Money = 99999; //Temporary measure
 
 	record = 99999999;
+	PaintPrice = 700;
 
 	CurrentEngineRPM         = default_level;
 	CurrentGearSwitchTime	 = default_level;
@@ -17,6 +18,7 @@ USave::USave(EEquipementLevel default_level) {
 	CurrentArmor			 = default_level;
 	CurrentDamage			 = default_level;
 	CurrentMaxHealth		 = default_level;
+	CurrentPaint			 = 0;
 
 	EngineRPM.Init(false, 4);
 	GearSwitchTime.Init(false, 4);
@@ -28,6 +30,7 @@ USave::USave(EEquipementLevel default_level) {
 	Armor.Init(false, 4);
 	Damage.Init(false, 4);
 	MaxHealth.Init(false, 4);
+	Paint.Init(false, 9);
 
 	SaveSlotName = TEXT("Savefile");
 	UserIndex = 0;
@@ -210,6 +213,21 @@ float USave::ConvertMaxHealth(EEquipementLevel level) {
 			return 500.f;
 		default:
 			throw std::runtime_error("Unsupported enum value.");
+	}
+}
+FLinearColor USave::ConvertPaint(int level) {
+	switch (level) {
+		case 0: return FLinearColor(0.09375,  0.09375,  0.09375,  1.0);
+		case 1: return FLinearColor(0.0162,   0.108884, 0.27,     1.0);
+		case 2: return FLinearColor(0.260417, 0.0,      0.00434,  1.0);
+		case 3: return FLinearColor(0.036133, 0.09375,  0.040982, 1.0);
+		case 4: return FLinearColor(0.004705, 0.006627, 0.060303, 1.0);
+		case 5: return FLinearColor(0.3125,   0.013021, 0.290343, 1.0);
+		case 6: return FLinearColor(0.013672, 0.328125, 0.25136,  1.0);
+		case 7: return FLinearColor(0.078799, 0.776042, 0.0,	  1.0);
+		case 8: return FLinearColor(0.203125, 0.185329, 0.060303, 1.0);
+		case 9: return FLinearColor(0.880208, 0.297987, 0.733432, 1.0);
+		default: return FLinearColor(0.0, 0.0, 0.0, 1.0);
 	}
 }
 float USave::Price(EEquipementLevel level) {

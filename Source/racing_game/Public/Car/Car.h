@@ -16,6 +16,7 @@ protected:
 	bool is_alive;
 	float armor;
 	float weapon_damage;
+	FLinearColor temp_color;
 
 	FTimerHandle invincibility_timer;
 	bool is_invincible;

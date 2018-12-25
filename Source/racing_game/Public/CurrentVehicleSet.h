@@ -11,6 +11,7 @@ class RACING_GAME_API UCurrentVehicleSet : public UUserWidget {
 	using ButtonHandle = TTuple<class UButton*, class UHorizontalBoxSlot*>;
 protected:
 	TArray<TArray<ButtonHandle>> buttons;
+	TTuple<TArray<ButtonHandle>, TArray<ButtonHandle>> colors;
 public:
 	//UCurrentVehicleSet(FObjectInitializer const& oi);
 	virtual TSharedRef<SWidget> RebuildWidget() override;
@@ -21,20 +22,26 @@ public:
 	enum class button_type {
 		active, inactive, unavailable
 	};
-	ButtonHandle button(UPanelWidget *panel, button_type type, FString name, int number, int row);
-	TArray<ButtonHandle> row(UPanelWidget *panel, TArray<bool> availability, int current, FString name, int number);
 	TArray<ButtonHandle> item(UPanelWidget *panel, int index, FString name, FString title, TArray<bool> availability, int current);
+	ButtonHandle button(UPanelWidget *panel, button_type type, FString name, int number, int row);
+	void update_button(ButtonHandle b, button_type new_type);
+
+	ButtonHandle color(UPanelWidget *panel, FString name, int number);
+	ButtonHandle color_button(UPanelWidget *panel, button_type type, FString name, int number);
+	TTuple<TArray<ButtonHandle>, TArray<ButtonHandle>> color_item(UPanelWidget *panel, TArray<bool> availability, int current, FString name);
+	void update_color_button(ButtonHandle b, button_type new_type);
 
 	void button_event(int row, int item);
-
+	void color_event(int item);
 	void enable_events(UButton *b, int row, int item);
-
-	void update_button(ButtonHandle b, button_type new_type);
+	void enable_color_events(UButton *b, int item);
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void PurchaseEvent();
 	UFUNCTION(BlueprintImplementableEvent)
 	void NotEnoughMoneyEvent();
+	UFUNCTION(BlueprintImplementableEvent)
+	void ColorChangeEvent();
 
 	UFUNCTION() void button_0_0();
 	UFUNCTION() void button_0_1();
@@ -95,4 +102,15 @@ public:
 	UFUNCTION() void button_9_2();
 	UFUNCTION() void button_9_3();
 	UFUNCTION() void button_9_4();
+
+	UFUNCTION() void button_c_0();
+	UFUNCTION() void button_c_1();
+	UFUNCTION() void button_c_2();
+	UFUNCTION() void button_c_3();
+	UFUNCTION() void button_c_4();
+	UFUNCTION() void button_c_5();
+	UFUNCTION() void button_c_6();
+	UFUNCTION() void button_c_7();
+	UFUNCTION() void button_c_8();
+	UFUNCTION() void button_c_9();
 };

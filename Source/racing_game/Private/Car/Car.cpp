@@ -77,6 +77,8 @@ ACar::ACar() : AWheeledVehicle() {
 	max_health = Savefile->GetMaxHealth();
 	armor = Savefile->GetMaxHealth();
 	weapon_damage = Savefile->GetDamage();
+
+	temp_color = Savefile->GetPaint();
 }
 void ACar::BeginPlay() {
 	Super::BeginPlay();
@@ -113,6 +115,10 @@ void ACar::BeginPlay() {
 	const FString command = FString::Printf(TEXT("set_value %f"), health / max_health);
 	static FOutputDeviceDebug temp;
 	HealthBar->GetUserWidgetObject()->CallFunctionByNameWithArguments(*command, temp, this, true);
+
+	auto Material = UMaterialInstanceDynamic::Create(GetMesh()->GetMaterial(0), this);
+	Material->SetVectorParameterValue(FName(TEXT("Paint Color")), temp_color);
+	GetMesh()->SetMaterial(0, Material);
 }
 void ACar::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);

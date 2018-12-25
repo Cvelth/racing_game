@@ -38,6 +38,7 @@ void UCurrentVehicleSet::update_widgets() {
 			Savefile = Cast<USave>(UGameplayStatics::CreateSaveGameObject(USave::StaticClass()));
 
 		int i = 0;
+		buttons.Empty();
 		buttons.Add(item(root, i++, "rpm", "Engine RPM", Savefile->EngineRPM, switch_EEquipementLevel(Savefile->CurrentEngineRPM)));
 		buttons.Add(item(root, i++, "gear", "Gear Switch Time", Savefile->GearSwitchTime, switch_EEquipementLevel(Savefile->CurrentGearSwitchTime)));
 		buttons.Add(item(root, i++, "mass", "Mass", Savefile->Mass, switch_EEquipementLevel(Savefile->CurrentMass)));
@@ -48,6 +49,10 @@ void UCurrentVehicleSet::update_widgets() {
 		buttons.Add(item(root, i++, "arm", "Armor", Savefile->Armor, switch_EEquipementLevel(Savefile->CurrentArmor)));
 		buttons.Add(item(root, i++, "dam", "Damage", Savefile->Damage, switch_EEquipementLevel(Savefile->CurrentDamage)));
 		buttons.Add(item(root, i++, "hp", "Maximum Health", Savefile->MaxHealth, switch_EEquipementLevel(Savefile->CurrentMaxHealth)));
+
+		colors.Get<0>().Empty();
+		colors.Get<1>().Empty();
+		colors = color_item(root, Savefile->Paint, Savefile->CurrentPaint, "color");
 	}
 }
 void UCurrentVehicleSet::update(bool full) {
@@ -60,8 +65,11 @@ void UCurrentVehicleSet::update(bool full) {
 UCurrentVehicleSet::ButtonHandle UCurrentVehicleSet::button(UPanelWidget *panel, button_type type, FString name, int number, int row) {
 	name.AppendInt(number);
 	switch (type) {
-		case button_type::active: 
+		case button_type::active:
 			name.AppendChar('a');
+			break;
+		case button_type::inactive:
+			name.AppendChar('n');
 			break;
 		case button_type::unavailable:
 			name.AppendChar('d');
@@ -73,42 +81,11 @@ UCurrentVehicleSet::ButtonHandle UCurrentVehicleSet::button(UPanelWidget *panel,
 	slot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
 	slot->SetPadding(FMargin(0));
 
-	switch (type) {
-		case button_type::active:
-		{
-			FSlateImageBrush n(Cast<UObject>(LoadObject<UTexture2D>(NULL, TEXT("Texture2D'/Game/Menu/Images/p_empty.p_empty'"), NULL, LOAD_None, NULL)), FVector2D(75, 75));
-			FSlateImageBrush h(Cast<UObject>(LoadObject<UTexture2D>(NULL, TEXT("Texture2D'/Game/Menu/Images/p_empty.p_empty'"), NULL, LOAD_None, NULL)), FVector2D(75, 75));
-			FSlateImageBrush p(Cast<UObject>(LoadObject<UTexture2D>(NULL, TEXT("Texture2D'/Game/Menu/Images/p_empty.p_empty'"), NULL, LOAD_None, NULL)), FVector2D(75, 75));
-			ret->WidgetStyle.SetNormal(n);
-			ret->WidgetStyle.SetHovered(h);
-			ret->WidgetStyle.SetPressed(p);
-			break;
-		}
-		case button_type::inactive:
-		{
-			FSlateImageBrush n(Cast<UObject>(LoadObject<UTexture2D>(NULL, TEXT("Texture2D'/Game/Menu/Images/n_empty.n_empty'"), NULL, LOAD_None, NULL)), FVector2D(75, 75));
-			FSlateImageBrush h(Cast<UObject>(LoadObject<UTexture2D>(NULL, TEXT("Texture2D'/Game/Menu/Images/h_empty.h_empty'"), NULL, LOAD_None, NULL)), FVector2D(75, 75));
-			FSlateImageBrush p(Cast<UObject>(LoadObject<UTexture2D>(NULL, TEXT("Texture2D'/Game/Menu/Images/p_empty.p_empty'"), NULL, LOAD_None, NULL)), FVector2D(75, 75));
-			ret->WidgetStyle.SetNormal(n);
-			ret->WidgetStyle.SetHovered(h);
-			ret->WidgetStyle.SetPressed(p);
-			break;
-		}
-		case button_type::unavailable:
-		{
-			FSlateImageBrush n(Cast<UObject>(LoadObject<UTexture2D>(NULL, TEXT("Texture2D'/Game/Menu/Images/n_disabled.n_disabled'"), NULL, LOAD_None, NULL)), FVector2D(75, 75));
-			FSlateImageBrush h(Cast<UObject>(LoadObject<UTexture2D>(NULL, TEXT("Texture2D'/Game/Menu/Images/h_disabled.h_disabled'"), NULL, LOAD_None, NULL)), FVector2D(75, 75));
-			FSlateImageBrush p(Cast<UObject>(LoadObject<UTexture2D>(NULL, TEXT("Texture2D'/Game/Menu/Images/p_empty.p_empty'"), NULL, LOAD_None, NULL)), FVector2D(75, 75));
-			ret->WidgetStyle.SetNormal(n);
-			ret->WidgetStyle.SetHovered(h);
-			ret->WidgetStyle.SetPressed(p);
-			break;
-		}
-	}
+	auto ret_tuple = MakeTuple(ret, slot);
+	update_button(ret_tuple, type);
 	enable_events(ret, row, number);
-	return MakeTuple(ret, slot);
+	return ret_tuple;
 }
-
 void UCurrentVehicleSet::update_button(ButtonHandle b, button_type new_type) {
 	switch (new_type) {
 		case button_type::active:
@@ -143,31 +120,25 @@ void UCurrentVehicleSet::update_button(ButtonHandle b, button_type new_type) {
 		}
 	}
 }
-
-TArray<UCurrentVehicleSet::ButtonHandle> UCurrentVehicleSet::row(UPanelWidget *panel, TArray<bool> availability, int current, FString name, int number) {
-	TArray<ButtonHandle> ret;
-	if (current == 0)
-		ret.Add(button(panel, button_type::active, name, 0, number));
-	else
-		ret.Add(button(panel, button_type::inactive, name, 0, number));
-
-	for (int i = 1; i < availability.Num() + 1; i++)
-		if (current == i)
-			ret.Add(button(panel, button_type::active, name, i, number));
-		else if (availability[i - 1])
-			ret.Add(button(panel, button_type::inactive, name, i, number));
-		else
-			ret.Add(button(panel, button_type::unavailable, name, i, number));
-	return ret;
-}
-
 TArray<UCurrentVehicleSet::ButtonHandle> UCurrentVehicleSet::item(UPanelWidget *panel, int index, FString name, FString title, TArray<bool> availability, int current) {
 	auto box = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), FName(*name));
 	auto box_slot = Cast<UCanvasPanelSlot>(panel->AddChild(box));
 	box_slot->SetSize(FVector2D(375, 75));
 	box_slot->SetPosition(FVector2D(1920 - 100 - 325, index * 80 + 150));
 
-	auto ret = row(box, availability, current, name + TEXT("_"), index);
+	TArray<ButtonHandle> ret;
+	if (current == 0)
+		ret.Add(button(box, button_type::active, name + TEXT("_"), 0, index));
+	else
+		ret.Add(button(box, button_type::inactive, name + TEXT("_"), 0, index));
+
+	for (int i = 1; i < availability.Num() + 1; i++)
+		if (current == i)
+			ret.Add(button(box, button_type::active, name + TEXT("_"), i, index));
+		else if (availability[i - 1])
+			ret.Add(button(box, button_type::inactive, name + TEXT("_"), i, index));
+		else
+			ret.Add(button(box, button_type::unavailable, name + TEXT("_"), i, index));
 
 	auto text = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), FName(*(name + TEXT("_text"))));
 	auto text_slot = Cast<UCanvasPanelSlot>(panel->AddChild(text));
@@ -176,6 +147,117 @@ TArray<UCurrentVehicleSet::ButtonHandle> UCurrentVehicleSet::item(UPanelWidget *
 
 	text->SetText(FText::FromString(title + TEXT(": ")));
 	text->SetJustification(ETextJustify::Right);
+
+	return ret;
+}
+
+FString generate(FString number) {
+	return TEXT("Texture2D'/Game/Menu/Images/Colors/c") + number + TEXT(".c") + number + TEXT("'");
+}
+UCurrentVehicleSet::ButtonHandle UCurrentVehicleSet::color(UPanelWidget *panel, FString name, int number) {
+	name.AppendInt(number);
+	name.AppendChar('c');
+
+	auto ret = WidgetTree->ConstructWidget<UButton>(UButton::StaticClass(), FName(*name));
+	auto slot = Cast<UHorizontalBoxSlot>(panel->AddChild(ret));
+	slot->SetSize(ESlateSizeRule::Fill);
+	slot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
+	slot->SetPadding(FMargin(0));
+
+	auto num = FString::FromInt(number);
+	FSlateImageBrush t(Cast<UObject>(LoadObject<UTexture2D>(NULL, *generate(num), NULL, LOAD_None, NULL)), FVector2D(75, 75));
+	ret->WidgetStyle.SetNormal(t);
+	ret->WidgetStyle.SetHovered(t);
+	ret->WidgetStyle.SetPressed(t);
+
+	return MakeTuple(ret, slot);
+}
+UCurrentVehicleSet::ButtonHandle UCurrentVehicleSet::color_button(UPanelWidget *panel, button_type type, FString name, int number) {
+	name.AppendInt(number);
+	switch (type) {
+		case button_type::active:
+			name.AppendChar('a');
+			break;
+		case button_type::inactive:
+			name.AppendChar('n');
+			break;
+		case button_type::unavailable:
+			name.AppendChar('d');
+			break;
+	}
+	auto ret = WidgetTree->ConstructWidget<UButton>(UButton::StaticClass(), FName(*name));
+	auto slot = Cast<UHorizontalBoxSlot>(panel->AddChild(ret));
+	slot->SetSize(ESlateSizeRule::Fill);
+	slot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
+	slot->SetPadding(FMargin(0));
+
+	auto ret_tuple = MakeTuple(ret, slot);
+	update_color_button(ret_tuple, type);
+	enable_color_events(ret, number);
+	return ret_tuple;
+}
+void UCurrentVehicleSet::update_color_button(ButtonHandle b, button_type new_type) {
+	switch (new_type) {
+		case button_type::active:
+		{
+			FSlateImageBrush n(Cast<UObject>(LoadObject<UTexture2D>(NULL, TEXT("Texture2D'/Game/Menu/Images/Colors/an.an'"), NULL, LOAD_None, NULL)), FVector2D(75, 75));
+			FSlateImageBrush h(Cast<UObject>(LoadObject<UTexture2D>(NULL, TEXT("Texture2D'/Game/Menu/Images/Colors/ah.ah'"), NULL, LOAD_None, NULL)), FVector2D(75, 75));
+			FSlateImageBrush p(Cast<UObject>(LoadObject<UTexture2D>(NULL, TEXT("Texture2D'/Game/Menu/Images/Colors/ap.ap'"), NULL, LOAD_None, NULL)), FVector2D(75, 75));
+			b.Get<0>()->WidgetStyle.SetNormal(n);
+			b.Get<0>()->WidgetStyle.SetHovered(h);
+			b.Get<0>()->WidgetStyle.SetPressed(p);
+			break;
+		}
+		case button_type::inactive:
+		{
+			FSlateImageBrush n(Cast<UObject>(LoadObject<UTexture2D>(NULL, TEXT("Texture2D'/Game/Menu/Images/Colors/nn.nn'"), NULL, LOAD_None, NULL)), FVector2D(75, 75));
+			FSlateImageBrush h(Cast<UObject>(LoadObject<UTexture2D>(NULL, TEXT("Texture2D'/Game/Menu/Images/Colors/nh.nh'"), NULL, LOAD_None, NULL)), FVector2D(75, 75));
+			FSlateImageBrush p(Cast<UObject>(LoadObject<UTexture2D>(NULL, TEXT("Texture2D'/Game/Menu/Images/Colors/np.np'"), NULL, LOAD_None, NULL)), FVector2D(75, 75));
+			b.Get<0>()->WidgetStyle.SetNormal(n);
+			b.Get<0>()->WidgetStyle.SetHovered(h);
+			b.Get<0>()->WidgetStyle.SetPressed(p);
+			break;
+		}
+		case button_type::unavailable:
+		{
+			FSlateImageBrush n(Cast<UObject>(LoadObject<UTexture2D>(NULL, TEXT("Texture2D'/Game/Menu/Images/Colors/dn.dn'"), NULL, LOAD_None, NULL)), FVector2D(75, 75));
+			FSlateImageBrush h(Cast<UObject>(LoadObject<UTexture2D>(NULL, TEXT("Texture2D'/Game/Menu/Images/Colors/dh.dh'"), NULL, LOAD_None, NULL)), FVector2D(75, 75));
+			FSlateImageBrush p(Cast<UObject>(LoadObject<UTexture2D>(NULL, TEXT("Texture2D'/Game/Menu/Images/Colors/dp.dp'"), NULL, LOAD_None, NULL)), FVector2D(75, 75));
+			b.Get<0>()->WidgetStyle.SetNormal(n);
+			b.Get<0>()->WidgetStyle.SetHovered(h);
+			b.Get<0>()->WidgetStyle.SetPressed(p);
+			break;
+		}
+	}
+}
+TTuple<TArray<UCurrentVehicleSet::ButtonHandle>, TArray<UCurrentVehicleSet::ButtonHandle>> UCurrentVehicleSet::color_item(UPanelWidget *panel, TArray<bool> availability, int current, FString name) {
+	TTuple<TArray<ButtonHandle>, TArray<ButtonHandle>> ret;
+
+	auto color_box = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), FName(*name));
+	auto color_box_slot = Cast<UCanvasPanelSlot>(panel->AddChild(color_box));
+	color_box_slot->SetSize(FVector2D((availability.Num() + 1) * 75, 75));
+	color_box_slot->SetPosition(FVector2D(585, 1));
+
+	for (int i = 0; i < availability.Num() + 1; i++)
+		ret.Get<1>().Add(color(color_box, name + "_c_", i));
+
+	auto button_box = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), FName(*name));
+	auto button_box_slot = Cast<UCanvasPanelSlot>(panel->AddChild(button_box));
+	button_box_slot->SetSize(FVector2D((availability.Num() + 1) * 75, 75));
+	button_box_slot->SetPosition(FVector2D(585, 0));
+
+	if (current == 0)
+		ret.Get<0>().Add(color_button(button_box, button_type::active, name + "_", 0));
+	else
+		ret.Get<0>().Add(color_button(button_box, button_type::inactive, name + "_", 0));
+
+	for (int i = 1; i < availability.Num() + 1; i++)
+		if (current == i)
+			ret.Get<0>().Add(color_button(button_box, button_type::active, name + "_", i));
+		else if (availability[i - 1])
+			ret.Get<0>().Add(color_button(button_box, button_type::inactive, name + "_", i));
+		else
+			ret.Get<0>().Add(color_button(button_box, button_type::unavailable, name + "_", i));
 
 	return ret;
 }
@@ -208,6 +290,36 @@ void UCurrentVehicleSet::button_event(int row, int item) {
 	update_button(buttons[row][item], button_type::active);
 	UGameplayStatics::SaveGameToSlot(Savefile, Savefile->SaveSlotName, Savefile->UserIndex);
 	PurchaseEvent();
+}
+void UCurrentVehicleSet::color_event(int item) {
+	USave* Savefile = Cast<USave>(UGameplayStatics::CreateSaveGameObject(USave::StaticClass()));
+	Savefile = Cast<USave>(UGameplayStatics::LoadGameFromSlot(Savefile->SaveSlotName, Savefile->UserIndex));
+	if (!Savefile)
+		Savefile = Cast<USave>(UGameplayStatics::CreateSaveGameObject(USave::StaticClass()));
+
+	if (Savefile->CurrentPaint == item)
+		return; //Already selected.
+
+	//auto level = make_EEquipementLevel(item);
+	auto old = Savefile->CurrentPaint;
+	if (item == 0)
+		Savefile->CurrentPaint = 0;
+	else if (Savefile->Paint[item - 1])
+		Savefile->CurrentPaint = item;
+	else
+		if (Savefile->Money >= Savefile->PaintPrice) {
+			Savefile->Paint[item - 1] = true;
+			Savefile->CurrentPaint = item;
+			Savefile->Money -= Savefile->PaintPrice;
+		} else {
+			NotEnoughMoneyEvent();
+			return;
+		}
+	update_color_button(colors.Get<0>()[old], button_type::inactive);
+	update_color_button(colors.Get<0>()[item], button_type::active);
+	UGameplayStatics::SaveGameToSlot(Savefile, Savefile->SaveSlotName, Savefile->UserIndex);
+	PurchaseEvent();
+	ColorChangeEvent();
 }
 
 void UCurrentVehicleSet::enable_events(UButton *b, int row, int item) {
@@ -295,6 +407,21 @@ void UCurrentVehicleSet::enable_events(UButton *b, int row, int item) {
 	}
 	throw std::runtime_error("Unknown button event");
 }
+void UCurrentVehicleSet::enable_color_events(UButton *b, int item) {
+	switch (item) {
+		case 0: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_c_0);
+		case 1: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_c_1);
+		case 2: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_c_2);
+		case 3:	return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_c_3);
+		case 4: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_c_4);
+		case 5: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_c_5);
+		case 6: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_c_6);
+		case 7: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_c_7);
+		case 8: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_c_8);
+		case 9: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_c_9);
+	}
+	throw std::runtime_error("Unknown button event");
+}
 
 void UCurrentVehicleSet::button_0_0() { button_event(0, 0); }
 void UCurrentVehicleSet::button_0_1() { button_event(0, 1); }
@@ -355,3 +482,14 @@ void UCurrentVehicleSet::button_9_1() { button_event(9, 1); }
 void UCurrentVehicleSet::button_9_2() { button_event(9, 2); }
 void UCurrentVehicleSet::button_9_3() { button_event(9, 3); }
 void UCurrentVehicleSet::button_9_4() { button_event(9, 4); }
+
+void UCurrentVehicleSet::button_c_0() { color_event(0); }
+void UCurrentVehicleSet::button_c_1() { color_event(1); }
+void UCurrentVehicleSet::button_c_2() { color_event(2); }
+void UCurrentVehicleSet::button_c_3() { color_event(3); }
+void UCurrentVehicleSet::button_c_4() { color_event(4); }
+void UCurrentVehicleSet::button_c_5() { color_event(5); }
+void UCurrentVehicleSet::button_c_6() { color_event(6); }
+void UCurrentVehicleSet::button_c_7() { color_event(7); }
+void UCurrentVehicleSet::button_c_8() { color_event(8); }
+void UCurrentVehicleSet::button_c_9() { color_event(9); }
