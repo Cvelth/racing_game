@@ -10,6 +10,8 @@
 #include "Save.h"
 #include "FrontWheel.h"
 #include "BackWheel.h"
+#include "TrackSpline.h"
+#include "CarManager.h"
 
 ACar::ACar() : AWheeledVehicle() {
 	PrimaryActorTick.bCanEverTick = true;
@@ -75,10 +77,11 @@ ACar::ACar() : AWheeledVehicle() {
 	//MovementComponent->bUseRVOAvoidance = true;
 
 	max_health = Savefile->GetMaxHealth();
-	armor = Savefile->GetMaxHealth();
+	armor = Savefile->GetArmor();
 	weapon_damage = Savefile->GetDamage();
 
 	temp_color = Savefile->GetPaint();
+	name = *Savefile->PlayerName;
 }
 void ACar::BeginPlay() {
 	Super::BeginPlay();
@@ -145,6 +148,7 @@ void ACar::SetupPlayerInputComponent(class UInputComponent* InputComponent) {
 	//InputComponent->BindAction("UISelectElement", IE_Pressed, this, &AMainCharacter::UISelectElement).bExecuteWhenPaused = true;
 
 	InputComponent->BindAction("Pause", IE_Pressed, this, &ACar::Pause);
+	InputComponent->BindAction("Restart", IE_Pressed, this, &ACar::Restart);
 }
 void ACar::MoveForward(float value) {
 	if (is_alive)
@@ -179,6 +183,14 @@ void ACar::Pause() {
 		controller->bShowMouseCursor = true;
 	}	
 }
+void ACar::Restart() {
+	auto location = track->m_spline->FindLocationClosestToWorldLocation(GetActorLocation(), ESplineCoordinateSpace::World);
+	auto rotation = track->m_spline->FindRotationClosestToWorldLocation(GetActorLocation(), ESplineCoordinateSpace::World);
+
+	FHitResult hit_result;
+	if (GetWorld()->LineTraceSingleByChannel(hit_result, FVector(location.X, location.Y, 1000), FVector(location.X, location.Y, -1000), ECollisionChannel::ECC_WorldStatic))
+		SetActorLocationAndRotation(hit_result.Location, rotation, false, nullptr, ETeleportType::ResetPhysics);
+}
 void ACar::ApplyDamage(float value) {
 	if (is_alive) {
 		health -= value / armor;
@@ -211,6 +223,7 @@ void ACar::Die() {
 		is_alive = false;
 	
 		//GetWorld()->GetTimerManager().SetTimer(_TimerHandle, this, &ACar::OnEffectFinished, 6.0f, false);
+		m_manager->has_died(this);
 	}
 }
 void ACar::OnEffectFinished() {

@@ -20,6 +20,8 @@ protected:
 
 	FTimerHandle invincibility_timer;
 	bool is_invincible;
+
+	class ACarManager *m_manager;
 public:
 	ACar();
 	virtual void BeginPlay() override;
@@ -50,6 +52,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
 	UUserWidget *PauseWidget;
 
+	UPROPERTY(EditAnywhere, Category = "TrackData")
+	class ATrackSpline *track;
+
 	void MoveForward(float value);
 	void MoveRight(float value);
 	void HandbrakeOn();
@@ -57,6 +62,7 @@ public:
 	void StartFire();
 	void StopFire();
 	void Pause();
+	void Restart();
 
 	void ApplyDamage(float value);
 	void Die();
@@ -76,4 +82,7 @@ public:
 
 	float get_speed();
 	int get_gear();
+
+	UFUNCTION()
+	void EnableManagement(class ACarManager *manager) { m_manager = manager; }
 };

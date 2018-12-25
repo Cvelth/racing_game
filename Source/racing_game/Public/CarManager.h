@@ -55,6 +55,8 @@ public:
 	void Win(ACar *car);
 	UFUNCTION()
 	void Lose();
+	UFUNCTION()
+	void has_died(ACar *car);
 	
 	UFUNCTION(BlueprintImplementableEvent)
 	void WinEvent();

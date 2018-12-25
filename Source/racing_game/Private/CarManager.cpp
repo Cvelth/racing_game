@@ -10,6 +10,7 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Misc/OutputDeviceDebug.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "TrackSpline.h"
 
 ACarManager::ACarManager() {
 	PrimaryActorTick.bCanEverTick = true;
@@ -46,11 +47,15 @@ void ACarManager::BeginPlay() {
 		auto car = GetWorld()->SpawnActor<ACar>(sphere->GetComponentLocation() + location_switch(0),
 											   FRotator(0, 90, 0), params); 
 		car->PauseWidget = PauseWidget;
+		car->track = track;
+		car->EnableManagement(this);
 		cars.Emplace(car, m_data->lap_number);
 		for (int i = 0; i < m_data->AI_car_number; i++) {
 			auto car = GetWorld()->SpawnActor<ACarAI>(sphere->GetComponentLocation() + location_switch(i + 1),
 													  FRotator(0, 90, 0), params);
-			car->set_track(track);
+			car->name = *(TEXT("AI_") + FString::FromInt(i));
+			car->track = track;
+			car->EnableManagement(this);
 			car->SpawnDefaultController();
 			cars.Emplace(car, m_data->lap_number);
 		}
@@ -88,19 +93,22 @@ void ACarManager::Tick(float DeltaTime) {
 }
 
 void ACarManager::OnOverlap(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult) {
-	auto found = cars.FindByPredicate([OtherActor](auto const& tuple) {
-		return OtherActor == tuple.Key;
-	});
-	if (found) {
-		found->Get<1>()--;
-		if (found->Get<1>() <= 0)
-			Win(found->Get<0>());
-		if (found->Get<0>() == cars[0].Get<0>() && m_data)
-			m_data->laps_left = found->Get<1>();
+	if (m_data->type != RaceType::Survival) {
+		auto found = cars.FindByPredicate([OtherActor](auto const& tuple) {
+			return OtherActor == tuple.Key;
+		});
+		if (found) {
+			found->Get<1>()--;
+			if (found->Get<1>() <= 0)
+				Win(found->Get<0>());
+			if (found->Get<0>() == cars[0].Get<0>() && m_data)
+				m_data->laps_left = found->Get<1>();
+		}
 	}
 }
 void ACarManager::OutOfTime() {
-	Lose();
+	if (m_data->type == RaceType::Time)
+		Lose();
 }
 
 void ACarManager::Win(ACar *car) {
@@ -128,4 +136,18 @@ void ACarManager::Win(ACar *car) {
 void ACarManager::Lose() {
 	HUD->RemoveFromParent();
 	LoseEvent();
+}
+void ACarManager::has_died(ACar *car) {
+	if (car == cars[0].Get<0>())
+		Lose();
+	else if (m_data->type == RaceType::Survival) {
+		auto found = cars.FindByPredicate([car](auto const& tuple) {
+			return car == tuple.Key;
+		});
+		if (found) {
+			cars.Remove(*found);
+			if (cars.Num() <= 1)
+				Win(cars[0].Get<0>());
+		}
+	}
 }

@@ -18,7 +18,7 @@ AWeapon::AWeapon() {
 	LeftGun = CreateDefaultSubobject<USphereComponent>(TEXT("LeftGun"));
 	//LeftGun->SetStaticMesh(leftGunMesh.Object);
 	//LeftGun->SetRelativeScale3D(FVector(4.0f, 0.1f, 1.0f));
-	LeftGun->SetRelativeLocation(FVector(150.0f, -55.0f, 0.0f));
+	LeftGun->SetRelativeLocation(FVector(250.0f, -55.0f, 0.0f));
 	LeftGun->SetSphereRadius(50.0f);
 	//LeftGun->SetCollisionProfileName(TEXT("OverlapAll"));
 	LeftGun->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -29,7 +29,7 @@ AWeapon::AWeapon() {
 	RightGun = CreateDefaultSubobject<USphereComponent>(TEXT("RightGun"));
 	//RightGun->SetStaticMesh(rightGunMesh.Object);
 	//RightGun->SetRelativeScale3D(FVector(4.0f, 0.1f, 1.0f));
-	RightGun->SetRelativeLocation(FVector(150.0f, 55.0f, 0.0f));
+	RightGun->SetRelativeLocation(FVector(250.0f, 55.0f, 0.0f));
 	RightGun->SetSphereRadius(50.0f);
 	//RightGun->SetCollisionProfileName(TEXT("OverlapAll"));
 	RightGun->SetCollisionEnabled(ECollisionEnabled::NoCollision);

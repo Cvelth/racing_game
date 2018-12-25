@@ -7,8 +7,9 @@
 #include "Kismet/GameplayStatics.h"
 #include "FrontWheel.h"
 #include "BackWheel.h"
+#include "TrackSpline.h"
 
-EEquipementLevel ACarAI::current_level = EEquipementLevel::L1;
+EEquipementLevel ACarAI::current_level = EEquipementLevel::L5;
 
 ACarAI::ACarAI() : ACar() {
 	PrimaryActorTick.bCanEverTick = true;
@@ -38,7 +39,7 @@ ACarAI::ACarAI() : ACar() {
 	MovementComponent->DragCoefficient = USave::ConvertDragCoefficient(current_level);
 
 	max_health = USave::ConvertMaxHealth(current_level);
-	armor = USave::ConvertMaxHealth(current_level);
+	armor = USave::ConvertArmor(current_level);
 	weapon_damage = USave::ConvertDamage(current_level);
 }
 void ACarAI::BeginPlay() {
@@ -61,6 +62,9 @@ void ACarAI::Tick(float DeltaTime) {
 	auto car_direction = car_velocity;
 	car_direction.Normalize();
 
+	if (car_speed <= 10)
+		Restart();
+
 	auto track_point = track->m_spline->FindLocationClosestToWorldLocation(car_position, ESplineCoordinateSpace::World);
 	auto track_vector = track->m_spline->FindDirectionClosestToWorldLocation(car_position, ESplineCoordinateSpace::World);
 
@@ -80,7 +84,7 @@ void ACarAI::Tick(float DeltaTime) {
 		throttle_value = FMath::GetMappedRangeValueUnclamped({0, 5}, {1, 0}, fabs(steering_value));
 
 	if (near_wall > 0.f) {
-		steering_value = -steering_value;
+		//steering_value = -steering_value;
 		throttle_value = -throttle_value;
 
 		near_wall -= DeltaTime;
