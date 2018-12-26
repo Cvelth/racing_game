@@ -62,7 +62,7 @@ void ACarAI::Tick(float DeltaTime) {
 	auto car_direction = car_velocity;
 	car_direction.Normalize();
 
-	if (car_speed <= 10)
+	if (car_speed <= 50)
 		Restart();
 
 	auto track_point = track->m_spline->FindLocationClosestToWorldLocation(car_position, ESplineCoordinateSpace::World);

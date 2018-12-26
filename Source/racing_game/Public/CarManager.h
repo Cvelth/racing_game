@@ -62,4 +62,7 @@ public:
 	void WinEvent();
 	UFUNCTION(BlueprintImplementableEvent)
 	void LoseEvent();
+
+	UFUNCTION()
+	class ACar* spawn_a_car(int index, bool ai = false);
 };

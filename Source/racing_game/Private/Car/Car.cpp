@@ -88,35 +88,12 @@ ACar::ACar() : AWheeledVehicle() {
 void ACar::BeginPlay() {
 	Super::BeginPlay();
 
-	//auto f = new FConstraintInstance();
-	//f->SetLinearXMotion(ELinearConstraintMotion::LCM_Free);
-	//f->SetLinearYMotion(ELinearConstraintMotion::LCM_Free);
-	//f->SetLinearZMotion(ELinearConstraintMotion::LCM_Locked);
-	//f->SetAngularSwing1Motion(EAngularConstraintMotion::ACM_Locked);
-	//f->SetAngularSwing2Motion(EAngularConstraintMotion::ACM_Locked);
-	//f->SetAngularTwistMotion(EAngularConstraintMotion::ACM_Locked);
-	//GetMesh()->Constraints.Add(f);
 	GetMesh()->GetBodyInstance()->AngularDamping = 3;
-	//GetMesh()->GetBodyInstance()->LinearDamping = 2;
-	//GetMesh()->BodyInstance.SetMaxAngularVelocityInRadians(0.5, false);
 	GetMesh()->GetBodyInstance()->UpdateDampingProperties();
 
-	//GetMesh()->BodyInstance.bLockTranslation = true;
-	//GetMesh()->BodyInstance.bLockRotation = true;
-	//GetMesh()->BodyInstance.bLockXTranslation = true;
-	//GetMesh()->BodyInstance.bLockYTranslation = true;
-	//GetMesh()->BodyInstance.bLockZTranslation = false;
-	//GetMesh()->BodyInstance.bLockXRotation = true;
-	//GetMesh()->BodyInstance.bLockYRotation = true;
-	//GetMesh()->BodyInstance.bLockZRotation = true;	
-	//GetMesh()->BodyInstance.SetDOFLock(EDOFMode::XYPlane);
-	//GetMesh()->GetBodyInstance()->SetDOFLock(EDOFMode::XYPlane);
 	auto center = GetMesh()->GetCenterOfMass();
-	GetMesh()->SetCenterOfMass(FVector(0, 0, -center.Z));
-	GetMesh()->GetBodyInstance()->COMNudge = FVector(0, 0, -center.Z);
-	//GetMesh()->GetBodyInstance()->StabilizationThresholdMultiplier = 4;
-	//GetMesh()->GetBodyInstance()->bLockXRotation = true;
-	//GetMesh()->GetBodyInstance()->bLockYRotation = true;
+	GetMesh()->SetCenterOfMass(FVector(0, 0, -center.Z / 2));
+	GetMesh()->GetBodyInstance()->COMNudge = FVector(0, 0, -center.Z / 2);
 	GetMesh()->GetBodyInstance()->UpdateMassProperties();
 
 	health = max_health;
@@ -206,13 +183,15 @@ void ACar::Pause() {
 	}	
 }
 void ACar::Restart() {
-	auto location = track->m_spline->FindLocationClosestToWorldLocation(GetActorLocation(), ESplineCoordinateSpace::World);
-	auto rotation = track->m_spline->FindRotationClosestToWorldLocation(GetActorLocation(), ESplineCoordinateSpace::World);
-	this->TeleportTo(location, rotation);
-
-	//FHitResult hit_result;
-	//if (GetWorld()->LineTraceSingleByChannel(hit_result, FVector(location.X, location.Y, 1000), FVector(location.X, location.Y, -1000), ECollisionChannel::ECC_WorldStatic))
-	//	SetActorLocationAndRotation(hit_result.Location, rotation, false, nullptr, ETeleportType::ResetPhysics);
+	if (track && GetVelocity().Size() < 500) {
+		auto location = track->m_spline->FindLocationClosestToWorldLocation(GetActorLocation(), ESplineCoordinateSpace::World);
+		auto rotation = track->m_spline->FindRotationClosestToWorldLocation(location, ESplineCoordinateSpace::World);
+		while (!TeleportTo(location, rotation)) {
+			auto direction = track->m_spline->FindDirectionClosestToWorldLocation(location, ESplineCoordinateSpace::World);
+			location = track->m_spline->FindLocationClosestToWorldLocation(location - 50 * direction, ESplineCoordinateSpace::World);
+			rotation = track->m_spline->FindRotationClosestToWorldLocation(location, ESplineCoordinateSpace::World);
+		}
+	}
 }
 void ACar::ApplyDamage(float value) {
 	if (is_alive) {

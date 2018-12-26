@@ -24,17 +24,6 @@ ACarManager::ACarManager() {
 	static ConstructorHelpers::FClassFinder<UUserWidget> HUD_Finder(TEXT("WidgetBlueprint'/Game/Menu/HUDWidget.HUDWidget_C'"));
 	HUD = CreateWidget<UUserWidget>(GetWorld(), HUD_Finder.Class);
 }
-FVector location_switch(int index) {
-	switch (index) {
-		case 0: return FVector(-350, +000, 0);
-		case 1: return FVector(+350, +900, 0);
-		case 2: return FVector(-350, +600, 0);
-		case 3: return FVector(+350, +300, 0);
-		case 4: return FVector(+350, -300, 0);
-		case 5: return FVector(-350, -600, 0);
-		default: return FVector(0, 0, 0);
-	}
-}
 void ACarManager::BeginPlay() {
 	Super::BeginPlay();
 	track->generate();
@@ -42,28 +31,12 @@ void ACarManager::BeginPlay() {
 
 	m_data = Cast<UGameData>(UGameplayStatics::GetGameInstance(GetWorld()));
 	if (m_data) {
-		FActorSpawnParameters params;
-		params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-		auto car = GetWorld()->SpawnActor<ACar>(sphere->GetComponentLocation() + location_switch(0),
-											   FRotator(0, 90, 0), params); 
-		car->PauseWidget = PauseWidget;
-		car->track = track;
-		car->EnableManagement(this);
-		cars.Emplace(car, m_data->lap_number);
-		for (int i = 0; i < m_data->AI_car_number; i++) {
-			auto car = GetWorld()->SpawnActor<ACarAI>(sphere->GetComponentLocation() + location_switch(i + 1),
-													  FRotator(0, 90, 0), params);
-			car->name = *(TEXT("AI_") + FString::FromInt(i));
-			car->track = track;
-			car->EnableManagement(this);
-			car->SpawnDefaultController();
-			cars.Emplace(car, m_data->lap_number);
-		}
+		cars.Emplace(spawn_a_car(0, false), m_data->lap_number);
+		for (int i = 1; i < m_data->AI_car_number + 1; i++)
+			cars.Emplace(spawn_a_car(i, true), m_data->lap_number);
+
 		if (m_data->time_limit != 0.f)
 			GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACarManager::OutOfTime, m_data->time_limit, false);
-
-		GetWorld()->GetFirstPlayerController()->UnPossess();
-		GetWorld()->GetFirstPlayerController()->Possess(car);
 	
 		m_data->current_time = 0;
 		m_data->laps_left = m_data->lap_number;
@@ -138,6 +111,7 @@ void ACarManager::Win(ACar *car) {
 }
 void ACarManager::Lose() {
 	HUD->RemoveFromParent();
+	UGameplayStatics::OpenLevel(GetWorld(), "MainMenuMap");
 	LoseEvent();
 }
 void ACarManager::has_died(ACar *car) {
@@ -154,3 +128,51 @@ void ACarManager::has_died(ACar *car) {
 		}
 	}
 }
+class ACar* ACarManager::spawn_a_car(int index, bool ai) {
+	FActorSpawnParameters params;
+	params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::DontSpawnIfColliding;
+
+	const float distance_bias = 1000;
+	ACar *ret = nullptr;
+	float distance = 0;
+	float flip_flop = 1.f;
+	while (!ret) {
+		auto location = track->m_spline->GetLocationAtDistanceAlongSpline(flip_flop * distance + distance_bias, ESplineCoordinateSpace::World);
+		//auto direction = track->m_spline->GetDirectionAtDistanceAlongSpline(flip_flop * distance + distance_bias, ESplineCoordinateSpace::World);
+		//location += FVector(direction.Y, -direction.X, 0) * 400 * flip_flop;
+		if (ai)
+			ret = GetWorld()->SpawnActor<ACarAI>(location + FVector(0, 0, 100), FRotator(0, 90, 0), params);
+		else
+			ret = GetWorld()->SpawnActor<ACar>(location + FVector(0, 0, 100), FRotator(0, 90, 0), params);
+
+		distance += 600;
+		flip_flop = -flip_flop;
+	}
+
+	ret->PauseWidget = PauseWidget;
+	ret->track = track;
+	ret->EnableManagement(this);
+	if (ai) {
+		ret->name = *(TEXT("AI_") + FString::FromInt(index));
+		ret->SpawnDefaultController();
+	} else {
+		GetWorld()->GetFirstPlayerController()->UnPossess();
+		GetWorld()->GetFirstPlayerController()->Possess(ret);
+	}
+	return ret;
+}
+/*
+	auto location = track->m_spline->FindLocationClosestToWorldLocation(GetActorLocation(), ESplineCoordinateSpace::World);
+	auto rotation = track->m_spline->FindRotationClosestToWorldLocation(location, ESplineCoordinateSpace::World);
+	while (!TeleportTo(location, rotation)) {
+		auto direction = track->m_spline->FindDirectionClosestToWorldLocation(location, ESplineCoordinateSpace::World);
+		location = track->m_spline->FindLocationClosestToWorldLocation(location - 50 * direction, ESplineCoordinateSpace::World);
+		rotation = track->m_spline->FindRotationClosestToWorldLocation(location, ESplineCoordinateSpace::World);
+	}
+
+auto location = track->m_spline->GetLocationAtDistanceAlongSpline((i % 2 == 0 ? +1 : -1) * 1200 * (i + 1) / 2, ESplineCoordinateSpace::World);
+auto car = GetWorld()->SpawnActor<ACar>(location + FVector((i % 2 == 0 ? +1 : -1) * 400, 0, 0),
+										FRotator(0, 90, 0), params);
+car->track = track;
+car->EnableManagement(this);
+*/
