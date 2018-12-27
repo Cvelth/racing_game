@@ -88,4 +88,6 @@ public:
 
 	UFUNCTION()
 	void EnableManagement(class ACarManager *manager) { m_manager = manager; }
+
+	void update_name(FName _name);
 };

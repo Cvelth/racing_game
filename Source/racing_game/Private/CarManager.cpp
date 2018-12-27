@@ -40,10 +40,10 @@ void ACarManager::BeginPlay() {
 
 		if (m_data->type == RaceType::Duel || m_data->type == RaceType::Survival)
 			for (auto car : cars)
-				car.Get<0>->fire_allowed = true;
+				car.Get<0>()->fire_allowed = true;
 		else
 			for (auto car : cars)
-				car.Get<0>->fire_allowed = false;
+				car.Get<0>()->fire_allowed = false;
 	
 		m_data->current_time = 0;
 		m_data->laps_left = m_data->lap_number;
@@ -160,7 +160,7 @@ class ACar* ACarManager::spawn_a_car(int index, bool ai) {
 	ret->track = track;
 	ret->EnableManagement(this);
 	if (ai) {
-		ret->name = *(TEXT("AI_") + FString::FromInt(index));
+		ret->update_name(*(TEXT("AI ") + FString::FromInt(index)));
 		ret->SpawnDefaultController();
 	} else {
 		GetWorld()->GetFirstPlayerController()->UnPossess();

@@ -112,9 +112,10 @@ void ACar::BeginPlay() {
 	HealthBar->SetWidgetSpace(EWidgetSpace::Screen);
 	HealthBar->SetRelativeTransform(FTransform(FVector(0, 0, 250)));
 
-	const FString command = FString::Printf(TEXT("set_value %f"), health / max_health);
+	FString command = FString::Printf(TEXT("set_value %f"), health / max_health);
 	static FOutputDeviceDebug temp;
 	HealthBar->GetUserWidgetObject()->CallFunctionByNameWithArguments(*command, temp, this, true);
+	update_name(name);
 
 	auto Material = UMaterialInstanceDynamic::Create(GetMesh()->GetMaterial(0), this);
 	Material->SetVectorParameterValue(FName(TEXT("Paint Color")), temp_color);
@@ -255,4 +256,13 @@ float ACar::get_speed() {
 }
 int ACar::get_gear() {
 	return GetVehicleMovement()->GetCurrentGear();
+}
+
+void ACar::update_name(FName _name) {
+	name = _name;
+	if (HealthBar) {
+		FString command = FString::Printf(TEXT("set_name %s"), *name.ToString());
+		static FOutputDeviceDebug temp;
+		HealthBar->GetUserWidgetObject()->CallFunctionByNameWithArguments(*command, temp, this, true);
+	}
 }

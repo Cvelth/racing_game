@@ -9,7 +9,7 @@
 #include "BackWheel.h"
 #include "TrackSpline.h"
 
-EEquipementLevel ACarAI::current_level = EEquipementLevel::L5;
+EEquipementLevel ACarAI::current_level = EEquipementLevel::L3;
 
 ACarAI::ACarAI() : ACar() {
 	PrimaryActorTick.bCanEverTick = true;
