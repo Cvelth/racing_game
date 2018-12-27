@@ -38,6 +38,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
 	UUserWidget *HUD;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
+	UUserWidget *VictoryWidget;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
+	UUserWidget *DefeatWidget;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")
 	USphereComponent* sphere;
 
@@ -57,6 +63,8 @@ public:
 	void Lose();
 	UFUNCTION()
 	void has_died(ACar *car);
+	UFUNCTION()
+	void end_level();
 	
 	UFUNCTION(BlueprintImplementableEvent)
 	void WinEvent();

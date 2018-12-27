@@ -109,17 +109,31 @@ void ACarManager::Win(ACar *car) {
 		}
 
 		UGameplayStatics::SaveGameToSlot(Savefile, Savefile->SaveSlotName, Savefile->UserIndex);
-		HUD->RemoveFromParent();
-		UGameplayStatics::OpenLevel(GetWorld(), "MainMenuMap");
+		//UGameplayStatics::SetGamePaused(GetWorld(), true);
+		if (VictoryWidget) {
+			VictoryWidget->AddToViewport();
+			GetWorldTimerManager().SetTimer(TimerHandle, this, &ACarManager::end_level, 3, false);
+		} else
+			end_level();
 		WinEvent();
-	}
-	else
+	} else
 		Lose();
 }
 void ACarManager::Lose() {
-	HUD->RemoveFromParent();
-	UGameplayStatics::OpenLevel(GetWorld(), "MainMenuMap");
+	//UGameplayStatics::SetGamePaused(GetWorld(), true);
+	if (DefeatWidget) {
+		DefeatWidget->AddToViewport();
+		GetWorldTimerManager().SetTimer(TimerHandle, this, &ACarManager::end_level, 3, false);
+	} else
+		end_level();
 	LoseEvent();
+}
+void ACarManager::end_level() {
+	if (VictoryWidget) VictoryWidget->RemoveFromParent();
+	if (DefeatWidget) DefeatWidget->RemoveFromParent();
+	HUD->RemoveFromParent();
+	//UGameplayStatics::SetGamePaused(GetWorld(), false);
+	UGameplayStatics::OpenLevel(GetWorld(), "MainMenuMap");
 }
 void ACarManager::has_died(ACar *car) {
 	if (car == cars[0].Get<0>())
