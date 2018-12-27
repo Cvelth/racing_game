@@ -166,12 +166,16 @@ void ACar::HandbrakeOff() {
 		GetVehicleMovement()->SetHandbrakeInput(false);
 }
 void ACar::StartFire() {
-	AWeapon* weapon = Cast<AWeapon>(Weapon->GetChildActor());
-	if (weapon)	weapon->Activate();
+	if (fire_allowed) {
+		AWeapon* weapon = Cast<AWeapon>(Weapon->GetChildActor());
+		if (weapon)	weapon->Activate();
+	}
 }
 void ACar::StopFire() {
-	AWeapon* weapon = Cast<AWeapon>(Weapon->GetChildActor());
-	if (weapon) weapon->Deactivate();
+	if (fire_allowed) {
+		AWeapon* weapon = Cast<AWeapon>(Weapon->GetChildActor());
+		if (weapon) weapon->Deactivate();
+	}
 }
 void ACar::Pause() {
 	auto controller = Cast<APlayerController>(GetController());

@@ -37,6 +37,13 @@ void ACarManager::BeginPlay() {
 
 		if (m_data->time_limit != 0.f)
 			GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACarManager::OutOfTime, m_data->time_limit, false);
+
+		if (m_data->type == RaceType::Duel || m_data->type == RaceType::Survival)
+			for (auto car : cars)
+				car.Get<0>->fire_allowed = true;
+		else
+			for (auto car : cars)
+				car.Get<0>->fire_allowed = false;
 	
 		m_data->current_time = 0;
 		m_data->laps_left = m_data->lap_number;

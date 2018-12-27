@@ -55,6 +55,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "TrackData")
 	class ATrackSpline *track;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "User")
+	bool fire_allowed;
+
 	void MoveForward(float value);
 	void MoveRight(float value);
 	void HandbrakeOn();
