@@ -10,4 +10,9 @@ public:
 	ABigGun();
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
+
+	float const damage_coefficient = 5.f;
+
+	virtual class ABulletInterface* create_next_bullet() override;
+	virtual float damage() const;
 };

@@ -6,7 +6,6 @@ AMultiGun::AMultiGun() {
 void AMultiGun::BeginPlay() {
 	Super::BeginPlay();
 	counter = 0;
-	reload_time /= switch_EEquipementLevel(level()) + 3;
 }
 void AMultiGun::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
@@ -22,4 +21,8 @@ ABulletInterface* AMultiGun::create_next_bullet() {
 	if (counter++ >= switch_EEquipementLevel(level()) + 3)
 		counter = 0;
 	return ret;
+}
+
+void AMultiGun::virtual_update_level(EEquipementLevel new_level) {
+	reload_time = .12f / (1.f + .7 * switch_EEquipementLevel(new_level));
 }

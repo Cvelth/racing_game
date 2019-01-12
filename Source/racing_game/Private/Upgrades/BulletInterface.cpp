@@ -42,12 +42,11 @@ ABulletInterface* ABulletInterface::factory_method(EBulletType type, EEquipement
 			return owner->GetWorld()->SpawnActor<AMultiGunBullet>(AMultiGunBullet::StaticClass(), next_position.first, FRotator(next_position.second.Pitch, next_position.second.Yaw, 0.f), bulletParams);
 		}
 		case EBulletType::machine_gun: {
-			//auto next_position = AMachineGunBullet::next_position(rotation, level, counter);
-			//return GetWorld()->SpawnActor<AMachineGunBullet>(AMachineGunBullet::StaticClass(), next_position.first, FRotator(next_position.second.Pitch, next_position.second.Yaw, 0.f), bulletParams);
+			auto next_position = AMachineGunBullet::next_position(owner->GetActorLocation(), owner->GetActorForwardVector(), bool(counter));
+			return owner->GetWorld()->SpawnActor<AMachineGunBullet>(AMachineGunBullet::StaticClass(), next_position, FRotator(owner->GetActorRotation().Pitch, owner->GetActorRotation().Yaw, 0.f), bulletParams);
 		}
 		case EBulletType::big: {
-			//auto next_position = ABigGunBullet::next_position(rotation, level);
-			//return GetWorld()->SpawnActor<ABigGunBullet>(ABigGunBullet::StaticClass(), next_position.first, FRotator(next_position.second.Pitch, next_position.second.Yaw, 0.f), bulletParams);
+			return owner->GetWorld()->SpawnActor<ABigGunBullet>(ABigGunBullet::StaticClass(), owner->GetActorLocation(), FRotator(owner->GetActorRotation().Pitch, owner->GetActorRotation().Yaw, 0.f), bulletParams);
 		}
 		default:
 			throw std::runtime_error("Unknown enum value.");

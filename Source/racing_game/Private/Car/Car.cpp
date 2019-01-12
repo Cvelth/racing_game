@@ -13,10 +13,9 @@
 #include "BackWheel.h"
 #include "TrackSpline.h"
 #include "CarManager.h"
-
-
-//!!!!
 #include "MultiGun.h"
+#include "MachineGun.h"
+#include "BigGun.h"
 
 ACar::ACar() : AWheeledVehicle() {
 	PrimaryActorTick.bCanEverTick = true;
@@ -35,10 +34,6 @@ ACar::ACar() : AWheeledVehicle() {
 	MainCamera->AttachToComponent(SpringArm, FAttachmentTransformRules::KeepRelativeTransform, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	MainCamera->bUsePawnControlRotation = false;
 	MainCamera->AddLocalRotation(FRotator(-10, 0, 0));
-
-	Weapon = CreateDefaultSubobject<UChildActorComponent>(TEXT("Weapon"));
-	Weapon->SetChildActorClass(AMultiGun::StaticClass());
-	Weapon->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 
 	Shield = CreateDefaultSubobject<UChildActorComponent>(TEXT("Shield"));
 	Shield->SetChildActorClass(AShield::StaticClass());
@@ -66,6 +61,22 @@ ACar::ACar() : AWheeledVehicle() {
 	UWheel::CurrentMaximumSteerAngle = Savefile->GetMaximumSteerAngle();
 	UWheel::CurrentFrictionScale = Savefile->GetFrictionScale();
 	UWheel::CurrentLatStiffness = Savefile->GetLatStiffness();
+
+	Weapon = CreateDefaultSubobject<UChildActorComponent>(TEXT("Weapon"));
+	switch (Savefile->CurrentAmmo) {
+		case 0:
+			Weapon->SetChildActorClass(AMachineGun::StaticClass());
+			break;
+		case 1:
+			Weapon->SetChildActorClass(AMultiGun::StaticClass());
+			break;
+		case 2:
+			Weapon->SetChildActorClass(ABigGun::StaticClass());
+			break;
+		default:
+			throw std::runtime_error("Unsupported enum value.");
+	}
+	Weapon->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 
 	GetVehicleMovement()->WheelSetups.SetNum(4); //set number of wheels
 	GetVehicleMovement()->WheelSetups[0].WheelClass = UFrontWheel::StaticClass();

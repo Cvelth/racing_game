@@ -17,5 +17,7 @@ public:
 	EEquipementLevel level() const { return m_level; }
 	void update_level(EEquipementLevel new_level) {
 		m_level = new_level;
+		virtual_update_level(new_level);
 	}
+	virtual void virtual_update_level(EEquipementLevel new_level) {}
 };
