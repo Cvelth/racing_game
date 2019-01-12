@@ -12,6 +12,7 @@ class RACING_GAME_API UCurrentVehicleSet : public UUserWidget {
 protected:
 	TArray<TArray<ButtonHandle>> buttons;
 	TTuple<TArray<ButtonHandle>, TArray<ButtonHandle>> colors;
+	TTuple<TArray<ButtonHandle>, TArray<ButtonHandle>> ammo;
 public:
 	//UCurrentVehicleSet(FObjectInitializer const& oi);
 	virtual TSharedRef<SWidget> RebuildWidget() override;
@@ -31,10 +32,16 @@ public:
 	TTuple<TArray<ButtonHandle>, TArray<ButtonHandle>> color_item(UPanelWidget *panel, TArray<bool> availability, int current, FString name);
 	void update_color_button(ButtonHandle b, button_type new_type);
 
+	ButtonHandle ammo_icon(UPanelWidget *panel, FString name, int number);
+	ButtonHandle ammo_button(UPanelWidget *panel, button_type type, FString name, int number);
+	TTuple<TArray<ButtonHandle>, TArray<ButtonHandle>> ammo_item(UPanelWidget *panel, TArray<bool> availability, int current, FString name);
+
 	void button_event(int row, int item);
 	void color_event(int item);
+	void ammo_event(int item);
 	void enable_events(UButton *b, int row, int item);
 	void enable_color_events(UButton *b, int item);
+	void enable_ammo_events(UButton *b, int item);
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void PurchaseEvent();
@@ -113,4 +120,8 @@ public:
 	UFUNCTION() void button_c_7();
 	UFUNCTION() void button_c_8();
 	UFUNCTION() void button_c_9();
+
+	UFUNCTION() void button_a_0();
+	UFUNCTION() void button_a_1();
+	UFUNCTION() void button_a_2();
 };

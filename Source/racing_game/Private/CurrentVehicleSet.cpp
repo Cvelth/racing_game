@@ -53,6 +53,10 @@ void UCurrentVehicleSet::update_widgets() {
 		colors.Get<0>().Empty();
 		colors.Get<1>().Empty();
 		colors = color_item(root, Savefile->Paint, Savefile->CurrentPaint, "color");
+
+		ammo.Get<0>().Empty();
+		ammo.Get<1>().Empty();
+		ammo = ammo_item(root, Savefile->Ammo, Savefile->CurrentAmmo, "ammo");
 	}
 }
 void UCurrentVehicleSet::update(bool full) {
@@ -262,6 +266,88 @@ TTuple<TArray<UCurrentVehicleSet::ButtonHandle>, TArray<UCurrentVehicleSet::Butt
 	return ret;
 }
 
+FString icon_name(int number) {
+	switch (number) {
+		case 0: return TEXT("Texture2D'/Game/Menu/Images/Weapons/machine_gun.machine_gun'");
+		case 1: return TEXT("Texture2D'/Game/Menu/Images/Weapons/multi_gun.multi_gun'");
+		case 2: return TEXT("Texture2D'/Game/Menu/Images/Weapons/big_gun.big_gun'");
+		default: throw std::runtime_error("Unsupported enum value.");
+	}
+}
+UCurrentVehicleSet::ButtonHandle UCurrentVehicleSet::ammo_icon(UPanelWidget *panel, FString name, int number) {
+	name.AppendInt(number);
+	name.AppendChar('i');
+
+	auto ret = WidgetTree->ConstructWidget<UButton>(UButton::StaticClass(), FName(*name));
+	auto slot = Cast<UHorizontalBoxSlot>(panel->AddChild(ret));
+	slot->SetSize(ESlateSizeRule::Fill);
+	slot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
+	slot->SetPadding(FMargin(0));
+
+	auto num = FString::FromInt(number);
+	FSlateImageBrush t(Cast<UObject>(LoadObject<UTexture2D>(NULL, *icon_name(number), NULL, LOAD_None, NULL)), FVector2D(75, 75));
+	ret->WidgetStyle.SetNormal(t);
+	ret->WidgetStyle.SetHovered(t);
+	ret->WidgetStyle.SetPressed(t);
+
+	return MakeTuple(ret, slot);
+}
+UCurrentVehicleSet::ButtonHandle UCurrentVehicleSet::ammo_button(UPanelWidget *panel, button_type type, FString name, int number) {
+	name.AppendInt(number);
+	switch (type) {
+		case button_type::active:
+			name.AppendChar('a');
+			break;
+		case button_type::inactive:
+			name.AppendChar('n');
+			break;
+		case button_type::unavailable:
+			name.AppendChar('d');
+			break;
+	}
+	auto ret = WidgetTree->ConstructWidget<UButton>(UButton::StaticClass(), FName(*name));
+	auto slot = Cast<UHorizontalBoxSlot>(panel->AddChild(ret));
+	slot->SetSize(ESlateSizeRule::Fill);
+	slot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
+	slot->SetPadding(FMargin(0));
+
+	auto ret_tuple = MakeTuple(ret, slot);
+	update_color_button(ret_tuple, type);
+	enable_ammo_events(ret, number);
+	return ret_tuple;
+}
+TTuple<TArray<UCurrentVehicleSet::ButtonHandle>, TArray<UCurrentVehicleSet::ButtonHandle>> UCurrentVehicleSet::ammo_item(UPanelWidget *panel, TArray<bool> availability, int current, FString name) {
+	TTuple<TArray<ButtonHandle>, TArray<ButtonHandle>> ret;
+
+	auto ammo_box = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), FName(*name));
+	auto ammo_box_slot = Cast<UCanvasPanelSlot>(panel->AddChild(ammo_box));
+	ammo_box_slot->SetSize(FVector2D((availability.Num() + 1) * 75, 75));
+	ammo_box_slot->SetPosition(FVector2D((1920 - (availability.Num() + 1) * 75) / 2, 1080 - 100));
+
+	for (int i = 0; i < availability.Num() + 1; i++)
+		ret.Get<1>().Add(ammo_icon(ammo_box, name + "_i_", i));
+
+	auto button_box = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), FName(*name));
+	auto button_box_slot = Cast<UCanvasPanelSlot>(panel->AddChild(button_box));
+	button_box_slot->SetSize(FVector2D((availability.Num() + 1) * 75, 75));
+	button_box_slot->SetPosition(FVector2D((1920 - (availability.Num() + 1) * 75) / 2, 1080 - 100));
+
+	if (current == 0)
+		ret.Get<0>().Add(ammo_button(button_box, button_type::active, name + "_", 0));
+	else
+		ret.Get<0>().Add(ammo_button(button_box, button_type::inactive, name + "_", 0));
+
+	for (int i = 1; i < availability.Num() + 1; i++)
+		if (current == i)
+			ret.Get<0>().Add(ammo_button(button_box, button_type::active, name + "_", i));
+		else if (availability[i - 1])
+			ret.Get<0>().Add(ammo_button(button_box, button_type::inactive, name + "_", i));
+		else
+			ret.Get<0>().Add(ammo_button(button_box, button_type::unavailable, name + "_", i));
+
+	return ret;
+}
+
 void UCurrentVehicleSet::button_event(int row, int item) {
 	USave* Savefile = Cast<USave>(UGameplayStatics::CreateSaveGameObject(USave::StaticClass()));
 	Savefile = Cast<USave>(UGameplayStatics::LoadGameFromSlot(Savefile->SaveSlotName, Savefile->UserIndex));
@@ -320,6 +406,35 @@ void UCurrentVehicleSet::color_event(int item) {
 	UGameplayStatics::SaveGameToSlot(Savefile, Savefile->SaveSlotName, Savefile->UserIndex);
 	PurchaseEvent();
 	ColorChangeEvent();
+}
+void UCurrentVehicleSet::ammo_event(int item) {
+	USave* Savefile = Cast<USave>(UGameplayStatics::CreateSaveGameObject(USave::StaticClass()));
+	Savefile = Cast<USave>(UGameplayStatics::LoadGameFromSlot(Savefile->SaveSlotName, Savefile->UserIndex));
+	if (!Savefile)
+		Savefile = Cast<USave>(UGameplayStatics::CreateSaveGameObject(USave::StaticClass()));
+
+	if (Savefile->CurrentAmmo == item)
+		return; //Already selected.
+
+	//auto level = make_EEquipementLevel(item);
+	auto old = Savefile->CurrentAmmo;
+	if (item == 0)
+		Savefile->CurrentAmmo = 0;
+	else if (Savefile->Ammo[item - 1])
+		Savefile->CurrentAmmo = item;
+	else
+		if (Savefile->Money >= Savefile->AmmoPrice) {
+			Savefile->Ammo[item - 1] = true;
+			Savefile->CurrentAmmo = item;
+			Savefile->Money -= Savefile->AmmoPrice;
+		} else {
+			NotEnoughMoneyEvent();
+			return;
+		}
+	update_color_button(ammo.Get<0>()[old], button_type::inactive);
+	update_color_button(ammo.Get<0>()[item], button_type::active);
+	UGameplayStatics::SaveGameToSlot(Savefile, Savefile->SaveSlotName, Savefile->UserIndex);
+	PurchaseEvent();
 }
 
 void UCurrentVehicleSet::enable_events(UButton *b, int row, int item) {
@@ -422,6 +537,14 @@ void UCurrentVehicleSet::enable_color_events(UButton *b, int item) {
 	}
 	throw std::runtime_error("Unknown button event");
 }
+void UCurrentVehicleSet::enable_ammo_events(UButton *b, int item) {
+	switch (item) {
+		case 0: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_a_0);
+		case 1: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_a_1);
+		case 2: return b->OnClicked.AddDynamic(this, &UCurrentVehicleSet::button_a_2);
+	}
+	throw std::runtime_error("Unknown button event");
+}
 
 void UCurrentVehicleSet::button_0_0() { button_event(0, 0); }
 void UCurrentVehicleSet::button_0_1() { button_event(0, 1); }
@@ -493,3 +616,7 @@ void UCurrentVehicleSet::button_c_6() { color_event(6); }
 void UCurrentVehicleSet::button_c_7() { color_event(7); }
 void UCurrentVehicleSet::button_c_8() { color_event(8); }
 void UCurrentVehicleSet::button_c_9() { color_event(9); }
+
+void UCurrentVehicleSet::button_a_0() { ammo_event(0); }
+void UCurrentVehicleSet::button_a_1() { ammo_event(1); }
+void UCurrentVehicleSet::button_a_2() { ammo_event(2); }

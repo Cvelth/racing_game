@@ -92,6 +92,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bought Equipment")
 	TArray<bool> Paint;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Currently Equipped")
+	int CurrentAmmo;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bought Equipment")
+	TArray<bool> Ammo;
+
 	UFUNCTION(BlueprintCallable)
 	static float ConvertEngineRPM(EEquipementLevel level);
 	UFUNCTION(BlueprintCallable)
@@ -119,6 +124,7 @@ public:
 	static float Price(EEquipementLevel level);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Money")
 	float PaintPrice;
+	float AmmoPrice;
 	
 	UFUNCTION(BlueprintCallable)
 	float GetEngineRPM() {

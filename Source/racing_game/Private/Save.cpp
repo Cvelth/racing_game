@@ -7,6 +7,7 @@ USave::USave(EEquipementLevel default_level) {
 
 	record = 99999999;
 	PaintPrice = 700;
+	AmmoPrice = 2500;
 
 	CurrentEngineRPM         = default_level;
 	CurrentGearSwitchTime	 = default_level;
@@ -19,6 +20,7 @@ USave::USave(EEquipementLevel default_level) {
 	CurrentDamage			 = default_level;
 	CurrentMaxHealth		 = default_level;
 	CurrentPaint			 = 0;
+	CurrentAmmo				 = 0;
 
 	EngineRPM.Init(false, 4);
 	GearSwitchTime.Init(false, 4);
@@ -31,6 +33,7 @@ USave::USave(EEquipementLevel default_level) {
 	Damage.Init(false, 4);
 	MaxHealth.Init(false, 4);
 	Paint.Init(false, 9);
+	Ammo.Init(false, 2);
 
 	SaveSlotName = TEXT("Savefile");
 	UserIndex = 0;
