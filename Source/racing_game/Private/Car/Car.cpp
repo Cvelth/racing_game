@@ -1,6 +1,7 @@
 #include "Car.h"
 #include "DestroyedCar.h"
-#include "Weapon.h"
+#include "WeaponInterface.h"
+#include "Shield.h"
 #include "WheeledVehicleMovementComponent.h" //PhysXVehicles
 #include "WheeledVehicleMovementComponent4W.h" //PhysXVehicles
 #include "TireConfig.h" //PhysXVehicles
@@ -12,6 +13,10 @@
 #include "BackWheel.h"
 #include "TrackSpline.h"
 #include "CarManager.h"
+
+
+//!!!!
+#include "MultiGun.h"
 
 ACar::ACar() : AWheeledVehicle() {
 	PrimaryActorTick.bCanEverTick = true;
@@ -32,8 +37,12 @@ ACar::ACar() : AWheeledVehicle() {
 	MainCamera->AddLocalRotation(FRotator(-10, 0, 0));
 
 	Weapon = CreateDefaultSubobject<UChildActorComponent>(TEXT("Weapon"));
-	Weapon->SetChildActorClass(AWeapon::StaticClass());
+	Weapon->SetChildActorClass(AMultiGun::StaticClass());
 	Weapon->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+
+	Shield = CreateDefaultSubobject<UChildActorComponent>(TEXT("Shield"));
+	Shield->SetChildActorClass(AShield::StaticClass());
+	Shield->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 
 	DestroyedCarEffect = CreateDefaultSubobject<UChildActorComponent>(TEXT("DestroyedCarEffect"));
 	DestroyedCarEffect->SetChildActorClass(ADestroyedCar::StaticClass());
@@ -79,11 +88,11 @@ ACar::ACar() : AWheeledVehicle() {
 	//MovementComponent->bUseRVOAvoidance = true;
 
 	max_health = Savefile->GetMaxHealth();
-	armor = Savefile->GetArmor();
-	weapon_damage = Savefile->GetDamage();
-
 	temp_color = Savefile->GetPaint();
 	name = *Savefile->PlayerName;
+
+	shield_level = Savefile->CurrentArmor;
+	weapon_level = Savefile->CurrentDamage;
 }
 void ACar::BeginPlay() {
 	Super::BeginPlay();
@@ -100,9 +109,13 @@ void ACar::BeginPlay() {
 	is_alive = true;
 	is_invincible = false;
 
-	AWeapon* weapon = Cast<AWeapon>(Weapon->GetChildActor());
+	auto weapon = Cast<AWeaponInterface>(Weapon->GetChildActor());
 	weapon->SetOwner(this);
-	weapon->damage = weapon_damage;
+	weapon->update_level(weapon_level);
+
+	auto shield = Cast<AShield>(Shield->GetChildActor());
+	shield->SetOwner(this);
+	shield->update_level(shield_level);
 
 	HealthBar->SetWidgetClass(HealthBarClass);
 	HealthBar->SetDrawSize(FVector2D(400.0f, 50.0f));
@@ -168,13 +181,13 @@ void ACar::HandbrakeOff() {
 }
 void ACar::StartFire() {
 	if (fire_allowed) {
-		AWeapon* weapon = Cast<AWeapon>(Weapon->GetChildActor());
+		auto weapon = Cast<AWeaponInterface>(Weapon->GetChildActor());
 		if (weapon)	weapon->Activate();
 	}
 }
 void ACar::StopFire() {
 	if (fire_allowed) {
-		AWeapon* weapon = Cast<AWeapon>(Weapon->GetChildActor());
+		auto weapon = Cast<AWeaponInterface>(Weapon->GetChildActor());
 		if (weapon) weapon->Deactivate();
 	}
 }
@@ -200,7 +213,11 @@ void ACar::Restart() {
 }
 void ACar::ApplyDamage(float value) {
 	if (is_alive) {
-		health -= value / armor;
+		auto shield = Cast<AShield>(Shield->GetChildActor());
+		if (shield)
+			health -= (*shield)(value);
+		else
+			health -= value;
 
 		const FString command = FString::Printf(TEXT("set_value %f"), health / max_health);
 		static FOutputDeviceDebug temp;
@@ -209,7 +226,7 @@ void ACar::ApplyDamage(float value) {
 		if (health <= 0)
 			Die();
 		else
-			if (value / armor > max_health / 10) {
+			if ((shield ? (*shield)(value) : value) > max_health / 10) {
 				is_invincible = true;
 				GetWorld()->GetTimerManager().SetTimer(invincibility_timer, this, &ACar::OnInvincibilityEnd, 0.2f, false);
 			}
@@ -246,8 +263,9 @@ void ACar::OnInvincibilityEnd() {
 
 void ACar::OnHit(AActor *SelfActor, AActor *OtherActor,
 				 FVector NormalImpulse, FHitResult const& Hit) {
+	auto shield = Cast<AShield>(Shield->GetChildActor());
 	if (!is_invincible && NormalImpulse.Size() > 140000.f)
-		ApplyDamage(NormalImpulse.Size() / armor / 80000.f);
+		ApplyDamage((shield ? (*shield)(NormalImpulse.Size()) : NormalImpulse.Size()) / 80000.f);
 	virtual_on_hit(SelfActor, OtherActor, NormalImpulse, Hit);
 }
 

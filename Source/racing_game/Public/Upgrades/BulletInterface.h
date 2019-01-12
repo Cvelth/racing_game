@@ -1,21 +1,34 @@
 #pragma once
+#include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "save.h"
 #include "Components/ArrowComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
-#include "Bullet.generated.h"
+#include "BulletInterface.generated.h"
+
+UENUM(BlueprintType)
+enum class EBulletType : uint8 {
+	small UMETA(DisplayName = "Small Bullet"),
+	machine_gun UMETA(DisplayName = "Machine Gun Bullet"),
+	big UMETA(DisplayName = "Big Bullet")
+};
 
 UCLASS()
-class RACING_GAME_API ABullet : public AActor {
+class RACING_GAME_API ABulletInterface : public AActor {
 	GENERATED_BODY()
-
-public:
-	ABullet();
+protected:
+	static EEquipementLevel level;
+public:	
+	ABulletInterface();
 	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaSeconds) override;
+	virtual void Tick(float DeltaTime) override;
+
+	static ABulletInterface* factory_method(EBulletType type, EEquipementLevel level, size_t counter, AActor* owner);
+
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Damage")
-	int32 damage;
+	float damage;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")
 	UArrowComponent* ArrowComponent;

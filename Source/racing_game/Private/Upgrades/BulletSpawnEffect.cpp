@@ -7,7 +7,7 @@ ABulletSpawnEffect::ABulletSpawnEffect() {
 	ConstructorHelpers::FObjectFinder<UParticleSystem> flashEmitter(TEXT("ParticleSystem'/Game/Particles/MuzzleFlash.MuzzleFlash'"));
 	ParticleEffectReference = flashEmitter.Object;
 	ParticleEffect = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleEffect"));
-	ParticleEffect->SetRelativeScale3D(FVector(3.0f, 3.0f, 3.0f));
+	ParticleEffect->SetRelativeScale3D(FVector(2.0f, 2.0f, 2.0f));
 	RootComponent = ParticleEffect;
 
 	ConstructorHelpers::FObjectFinder<USoundCue> bulletSpawnSound(TEXT("SoundCue'/Game/Audio/SoundCues/MachineGunShotSound_Cue.MachineGunShotSound_Cue'"));

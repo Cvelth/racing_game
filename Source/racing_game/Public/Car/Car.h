@@ -3,7 +3,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Components/WidgetComponent.h"
-#include "Weapon.h"
+#include "Save.h"
 #include "Car.generated.h"
 
 UCLASS()
@@ -14,8 +14,8 @@ protected:
 	float health;
 	float max_health;
 	bool is_alive;
-	float armor;
-	float weapon_damage;
+	EEquipementLevel shield_level;
+	EEquipementLevel weapon_level;
 	FLinearColor temp_color;
 
 	FTimerHandle invincibility_timer;
@@ -28,6 +28,10 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
 
+	UChildActorComponent *Weapon;
+	UChildActorComponent *Shield;
+	TArray<UChildActorComponent*> Upgrades;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "User")
 	FName name = TEXT("Unnamed");
 
@@ -36,9 +40,6 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	UCameraComponent *MainCamera;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
-	UChildActorComponent *Weapon;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Effects")
 	UChildActorComponent *DestroyedCarEffect;

@@ -39,8 +39,8 @@ ACarAI::ACarAI() : ACar() {
 	MovementComponent->DragCoefficient = USave::ConvertDragCoefficient(current_level);
 
 	max_health = USave::ConvertMaxHealth(current_level);
-	armor = USave::ConvertArmor(current_level);
-	weapon_damage = USave::ConvertDamage(current_level);
+	shield_level = current_level;
+	weapon_level = current_level;
 }
 void ACarAI::BeginPlay() {
 	Super::BeginPlay();
