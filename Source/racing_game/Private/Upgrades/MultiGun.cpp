@@ -16,8 +16,10 @@ float AMultiGun::damage() const {
 }
 
 #include "BulletInterface.h"
+#include "MultiGunBulletFactory.h"
 ABulletInterface* AMultiGun::create_next_bullet() {
-	auto ret = ABulletInterface::factory_method(EBulletType::small, level(), counter, this);
+	MultiGunBulletFactory factory;
+	auto ret = factory.create(level(), counter, this);
 	if (counter++ >= switch_EEquipementLevel(level()) + 3)
 		counter = 0;
 	return ret;

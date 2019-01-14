@@ -16,8 +16,10 @@ float AMachineGun::damage() const {
 }
 
 #include "BulletInterface.h"
+#include "MachineGunBulletFactory.h"
 ABulletInterface* AMachineGun::create_next_bullet() {
-	auto ret = ABulletInterface::factory_method(EBulletType::machine_gun, level(), left_or_right, this);
+	MachineGunBulletFactory factory;
+	auto ret = factory.create(level(), left_or_right, this);
 	left_or_right = !left_or_right;
 	return ret;
 }

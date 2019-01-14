@@ -16,7 +16,8 @@ float ABigGun::damage() const {
 }
 
 #include "BulletInterface.h"
+#include "BigGunBulletFactory.h"
 ABulletInterface* ABigGun::create_next_bullet() {
-	auto ret = ABulletInterface::factory_method(EBulletType::big, level(), 0, this);
-	return ret;
+	BigGunBulletFactory factory;
+	return factory.create(level(), 0, this);
 }
