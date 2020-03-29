@@ -1,4 +1,3 @@
-#include <stdexcept>
 #include "Car.h"
 #include "DestroyedCar.h"
 #include "WeaponInterface.h"
@@ -17,6 +16,7 @@
 #include "MultiGun.h"
 #include "MachineGun.h"
 #include "BigGun.h"
+#include <stdexcept>
 
 ACar::ACar() : AWheeledVehicle() {
 	PrimaryActorTick.bCanEverTick = true;
@@ -152,28 +152,28 @@ void ACar::Tick(float DeltaTime) {
 	//GetMesh()->AddImpulse(FVector(0, 0, -velocity.Z * GetVehicleMovement()->Mass));
 }
 
-void ACar::SetupPlayerInputComponent(class UInputComponent* InputComponent) {
-	Super::SetupPlayerInputComponent(InputComponent);
+void ACar::SetupPlayerInputComponent(class UInputComponent* component) {
+	Super::SetupPlayerInputComponent(component);
 	/*Movement Axes*/
-	InputComponent->BindAxis("MoveForward", this, &ACar::MoveForward);
-	InputComponent->BindAxis("MoveRight", this, &ACar::MoveRight);
+	component->BindAxis("MoveForward", this, &ACar::MoveForward);
+	component->BindAxis("MoveRight", this, &ACar::MoveRight);
 
 	/*Action Key Mapping*/
-	InputComponent->BindAction("Handbrake", IE_Pressed, this, &ACar::HandbrakeOn);
-	InputComponent->BindAction("Handbrake", IE_Released, this, &ACar::HandbrakeOff);
+	component->BindAction("Handbrake", IE_Pressed, this, &ACar::HandbrakeOn);
+	component->BindAction("Handbrake", IE_Released, this, &ACar::HandbrakeOff);
 
-	InputComponent->BindAction("Weapon", IE_Pressed, this, &ACar::StartFire);
-	InputComponent->BindAction("Weapon", IE_Released, this, &ACar::StopFire);
+	component->BindAction("Weapon", IE_Pressed, this, &ACar::StartFire);
+	component->BindAction("Weapon", IE_Released, this, &ACar::StopFire);
 
 	/* UI Mappings */
-	//InputComponent->BindAction("UINavigationUp", IE_Pressed, this, &AMainCharacter::UINavigationUp).bExecuteWhenPaused = true;
-	//InputComponent->BindAction("UINavigationDown", IE_Pressed, this, &AMainCharacter::UINavigationDown).bExecuteWhenPaused = true;
-	//InputComponent->BindAction("UINavigationLeft", IE_Pressed, this, &AMainCharacter::UINavigationLeft).bExecuteWhenPaused = true;
-	//InputComponent->BindAction("UINavigationRight", IE_Pressed, this, &AMainCharacter::UINavigationRight).bExecuteWhenPaused = true;
-	//InputComponent->BindAction("UISelectElement", IE_Pressed, this, &AMainCharacter::UISelectElement).bExecuteWhenPaused = true;
+	//component->BindAction("UINavigationUp", IE_Pressed, this, &AMainCharacter::UINavigationUp).bExecuteWhenPaused = true;
+	//component->BindAction("UINavigationDown", IE_Pressed, this, &AMainCharacter::UINavigationDown).bExecuteWhenPaused = true;
+	//component->BindAction("UINavigationLeft", IE_Pressed, this, &AMainCharacter::UINavigationLeft).bExecuteWhenPaused = true;
+	//component->BindAction("UINavigationRight", IE_Pressed, this, &AMainCharacter::UINavigationRight).bExecuteWhenPaused = true;
+	//component->BindAction("UISelectElement", IE_Pressed, this, &AMainCharacter::UISelectElement).bExecuteWhenPaused = true;
 
-	InputComponent->BindAction("Pause", IE_Pressed, this, &ACar::Pause);
-	InputComponent->BindAction("Restart", IE_Pressed, this, &ACar::Restart);
+	component->BindAction("Pause", IE_Pressed, this, &ACar::Pause);
+	component->BindAction("Restart", IE_Pressed, this, &ACar::Restart);
 }
 void ACar::MoveForward(float value) {
 	if (is_alive)
