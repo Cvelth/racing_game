@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include "Car.h"
 #include "DestroyedCar.h"
 #include "WeaponInterface.h"
